@@ -194,7 +194,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        'Display an Eliot log as a tree of tasks.')
+        description='Display an Eliot log as a tree of tasks.')
     parser.add_argument('files',
                         metavar='FILE',
                         nargs='*',
