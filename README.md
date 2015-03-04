@@ -2,7 +2,7 @@
 
 Render [Eliot](https://github.com/ClusterHQ/eliot) logs as an ASCII tree.
 
-```shell
+```console
 $ python eliottree.py < eliot.log
 f3a32bb3-ea6b-457c-aa99-08a3d0491ab4
     +-- app:soap:client:request@1/started
