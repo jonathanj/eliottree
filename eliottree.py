@@ -10,14 +10,42 @@ DEFAULT_IGNORED_KEYS = set([
 
 
 
+def _truncateValue(value, limit=100):
+    """
+    Truncate long values.
+    """
+    values = value.split('\n')
+    value = values[0]
+    if len(value) > limit or len(values) > 1:
+        return '{}...'.format(value[:limit])
+    return value
+
+
+
+def _taskName(task):
+    """
+    Compute the task name for an Eliot task.
+    """
+    level = u','.join(map(unicode, task[u'task_level']))
+    messageType = task.get('message_type', None)
+    if messageType == u'eliot:traceback':
+        status = None
+    elif messageType is None:
+        messageType = task['action_type']
+        status = task['action_status']
+    return u'{messageType}@{level}/{status}'.format(
+        messageType=messageType,
+        level=level,
+        status=status)
+
+
+
 class TaskNode(object):
     def __init__(self, task, name=None, sorter=None):
         self.task = task
         self._children = {}
         if name is None:
-            name = u'{action_type}@{level}/{action_status}'.format(
-                level=u','.join(map(unicode, self.task[u'task_level'])),
-                **self.task)
+            name = _taskName(task)
         self.name = name
         self.sorter = sorter
 
@@ -75,7 +103,8 @@ def _renderTask(write, task, ignoredTaskKeys):
         elif isinstance(value, unicode):
             # XXX: This is probably wrong in a bunch of places.
             return value.encode('utf-8')
-        return value
+        # XXX: This is probably wrong in a bunch of places.
+        return str(value)
     numItems = len(task)
     for i, (key, value) in enumerate(sorted(task.items()), 1):
         if key not in ignoredTaskKeys:
@@ -84,7 +113,7 @@ def _renderTask(write, task, ignoredTaskKeys):
                 '{treeChar}-- {key}: {value}\n'.format(
                     treeChar=treeChar,
                     key=key.encode('utf-8'),
-                    value=_value(value)))
+                    value=_truncateValue(_value(value))))
 
 
 
