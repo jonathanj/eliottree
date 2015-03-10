@@ -36,17 +36,18 @@ class TaskNode(object):
             children=len(self._children))
 
 
-    def addChild(self, node):
+    def addChild(self, node, levels=None):
         """
         Add a child ``TaskNode``.
         """
-        levels = list(node.task['task_level'])
+        if levels is None:
+            levels = node.task['task_level']
+        levels = list(levels)
         level = levels.pop(0)
         children = self._children
-        while levels:
-            if level in children:
-                children = children[level]._children
-            levels.pop(0)
+        if level in children:
+            return children[level].addChild(node, levels)
+        assert level not in children
         children[level] = node
 
 
