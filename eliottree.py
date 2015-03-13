@@ -88,6 +88,32 @@ class TaskNode(object):
 
 
 
+def _indentedWrite(write):
+    """
+    Indent a write.
+    """
+    def _write(data):
+        write('    ' + data)
+    return _write
+
+
+
+def _formatValue(value):
+    """
+    Format a value for a task tree.
+    """
+    if isinstance(value, datetime):
+        return value.isoformat(' ')
+    elif isinstance(value, unicode):
+        # XXX: This is probably wrong in a bunch of places.
+        return value.encode('utf-8')
+    elif isinstance(value, dict):
+        return value
+    # XXX: This is probably wrong in a bunch of places.
+    return str(value)
+
+
+
 def _renderTask(write, task, ignoredTaskKeys):
     """
     Render a single ``TaskNode`` as an ``ASCII`` tree.
@@ -97,23 +123,24 @@ def _renderTask(write, task, ignoredTaskKeys):
     :param task: Eliot task ``dict`` to render.
     :param ignoredTaskKeys: ``set`` of task key names to ignore.
     """
-    def _value(value):
-        if isinstance(value, datetime):
-            return value.isoformat(' ')
-        elif isinstance(value, unicode):
-            # XXX: This is probably wrong in a bunch of places.
-            return value.encode('utf-8')
-        # XXX: This is probably wrong in a bunch of places.
-        return str(value)
+    _write = _indentedWrite(write)
     numItems = len(task)
     for i, (key, value) in enumerate(sorted(task.items()), 1):
         if key not in ignoredTaskKeys:
             treeChar = '`' if i == numItems else '|'
-            write(
-                '{treeChar}-- {key}: {value}\n'.format(
-                    treeChar=treeChar,
-                    key=key.encode('utf-8'),
-                    value=_truncateValue(_value(value))))
+            _value = _formatValue(value)
+            if isinstance(value, dict):
+                write(
+                    '{treeChar}-- {key}:\n'.format(
+                        treeChar=treeChar,
+                        key=key.encode('utf-8')))
+                _renderTask(_write, _value, {})
+            else:
+                write(
+                    '{treeChar}-- {key}: {value}\n'.format(
+                        treeChar=treeChar,
+                        key=key.encode('utf-8'),
+                        value=_truncateValue(_value)))
 
 
 
@@ -126,10 +153,6 @@ def _renderTaskNode(write, node, ignoredTaskKeys):
     :param node: ``TaskNode`` to render.
     :param ignoredTaskKeys: ``set`` of task key names to ignore.
     """
-    def _indentedWrite(write):
-        def _write(data):
-            write('    ' + data)
-        return _write
     _childWrite = _indentedWrite(write)
     if node.task is not None:
         write(
