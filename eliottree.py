@@ -28,7 +28,7 @@ def _taskName(task):
     """
     level = u','.join(map(unicode, task[u'task_level']))
     messageType = task.get('message_type', None)
-    if messageType == u'eliot:traceback':
+    if messageType is not None:
         status = None
     elif messageType is None:
         messageType = task['action_type']
