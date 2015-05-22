@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import argparse
 import json
 import sys
@@ -218,7 +216,7 @@ def _convertTimestamp(task):
 
 
 
-def main(args):
+def displayTaskTree(args):
     """
     Read the input files, apply any command-line-specified behaviour and
     display the task tree.
@@ -247,7 +245,7 @@ def main(args):
         ignoredTaskKeys=set(args.ignored_task_keys) or DEFAULT_IGNORED_KEYS)
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(
         description='Display an Eliot log as a tree of tasks.')
     parser.add_argument('files',
@@ -275,4 +273,4 @@ if __name__ == '__main__':
                         help='''Do not format some task values (such as
                         timestamps) as human-readable''')
     args = parser.parse_args()
-    main(args)
+    displayTaskTree(args)

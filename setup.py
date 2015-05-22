@@ -8,7 +8,13 @@ setup(
     url='https://github.com/jonathanj/eliottree',
     platforms='any',
     license='MIT',
-    scripts=['eliottree.py'],
+    py_modules=['eliottree'],
+    entry_points={
+        # These are the command-line programs we want setuptools to install.
+        'console_scripts': [
+            'eliottree = eliottree:main',
+        ],
+    },
     install_requires=[
         'eliot >= 0.7'
     ],
