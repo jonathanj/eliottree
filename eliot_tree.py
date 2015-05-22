@@ -4,10 +4,8 @@ import sys
 from datetime import datetime
 
 
-
 DEFAULT_IGNORED_KEYS = set([
     u'action_status', u'action_type', u'task_level', u'task_uuid'])
-
 
 
 def _truncate_value(value, limit=100):
@@ -19,7 +17,6 @@ def _truncate_value(value, limit=100):
     if len(value) > limit or len(values) > 1:
         return '{}...'.format(value[:limit])
     return value
-
 
 
 def _task_name(task):
@@ -39,7 +36,6 @@ def _task_name(task):
         status=status)
 
 
-
 class TaskNode(object):
     def __init__(self, task, name=None, sorter=None):
         self.task = task
@@ -48,7 +44,6 @@ class TaskNode(object):
             name = _task_name(task)
         self.name = name
         self.sorter = sorter
-
 
     def __repr__(self):
         if self.task is None:
@@ -62,7 +57,6 @@ class TaskNode(object):
             # XXX: This is probably wrong in a bunch of places.
             name=self.name.encode('utf-8'),
             children=len(self._children))
-
 
     def add_child(self, node, levels=None):
         """
@@ -78,14 +72,12 @@ class TaskNode(object):
         assert level not in children
         children[level] = node
 
-
     def children(self):
         """
         Get an ordered ``list`` of child ``TaskNode``s.
         """
         return sorted(
             self._children.values(), key=lambda n: n.task[u'task_level'])
-
 
 
 def _indented_write(write):
@@ -95,7 +87,6 @@ def _indented_write(write):
     def _write(data):
         write('    ' + data)
     return _write
-
 
 
 def _format_value(value):
@@ -111,7 +102,6 @@ def _format_value(value):
         return value
     # XXX: This is probably wrong in a bunch of places.
     return str(value)
-
 
 
 def _render_task(write, task, ignored_task_keys):
@@ -143,7 +133,6 @@ def _render_task(write, task, ignored_task_keys):
                         value=_truncate_value(_value)))
 
 
-
 def _render_task_node(write, node, ignored_task_keys):
     """
     Render a single ``TaskNode`` as an ``ASCII`` tree.
@@ -165,7 +154,6 @@ def _render_task_node(write, node, ignored_task_keys):
         _render_task_node(_child_write, child, ignored_task_keys)
 
 
-
 def render_task_tree(write, tasktree, ignored_task_keys=DEFAULT_IGNORED_KEYS):
     """
     Render a task tree as an ``ASCII`` tree.
@@ -181,7 +169,6 @@ def render_task_tree(write, tasktree, ignored_task_keys=DEFAULT_IGNORED_KEYS):
             name=node.name.encode('utf-8')))
         _render_task_node(write, node, ignored_task_keys)
         write('\n')
-
 
 
 def merge_tasktree(tasktree, fd, process_task=None):
@@ -206,14 +193,12 @@ def merge_tasktree(tasktree, fd, process_task=None):
     return tasktree
 
 
-
 def _convert_timestamp(task):
     """
     Convert a ``timestamp`` key to a ``datetime``.
     """
     task['timestamp'] = datetime.fromtimestamp(task['timestamp'])
     return task
-
 
 
 def display_task_tree(args):
@@ -267,8 +252,6 @@ def main():
                         keys.''')
     parser.add_argument('--raw',
                         action='store_false',
-                        #default=True,
-                        #const=False,
                         dest='human_readable',
                         help='''Do not format some task values (such as
                         timestamps) as human-readable''')
