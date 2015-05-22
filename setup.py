@@ -15,9 +15,6 @@ setup(
             'eliot-tree = eliot_tree:main',
         ],
     },
-    install_requires=[
-        'eliot >= 0.7'
-    ],
     zip_safe=False,
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
