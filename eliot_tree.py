@@ -10,7 +10,7 @@ DEFAULT_IGNORED_KEYS = set([
 
 
 
-def _truncateValue(value, limit=100):
+def _truncate_value(value, limit=100):
     """
     Truncate long values.
     """
@@ -22,19 +22,19 @@ def _truncateValue(value, limit=100):
 
 
 
-def _taskName(task):
+def _task_name(task):
     """
     Compute the task name for an Eliot task.
     """
     level = u','.join(map(unicode, task[u'task_level']))
-    messageType = task.get('message_type', None)
-    if messageType is not None:
+    message_type = task.get('message_type', None)
+    if message_type is not None:
         status = None
-    elif messageType is None:
-        messageType = task['action_type']
+    elif message_type is None:
+        message_type = task['action_type']
         status = task['action_status']
-    return u'{messageType}@{level}/{status}'.format(
-        messageType=messageType,
+    return u'{message_type}@{level}/{status}'.format(
+        message_type=message_type,
         level=level,
         status=status)
 
@@ -45,7 +45,7 @@ class TaskNode(object):
         self.task = task
         self._children = {}
         if name is None:
-            name = _taskName(task)
+            name = _task_name(task)
         self.name = name
         self.sorter = sorter
 
@@ -64,7 +64,7 @@ class TaskNode(object):
             children=len(self._children))
 
 
-    def addChild(self, node, levels=None):
+    def add_child(self, node, levels=None):
         """
         Add a child ``TaskNode``.
         """
@@ -74,7 +74,7 @@ class TaskNode(object):
         level = levels.pop(0)
         children = self._children
         if level in children:
-            return children[level].addChild(node, levels)
+            return children[level].add_child(node, levels)
         assert level not in children
         children[level] = node
 
@@ -88,7 +88,7 @@ class TaskNode(object):
 
 
 
-def _indentedWrite(write):
+def _indented_write(write):
     """
     Indent a write.
     """
@@ -98,7 +98,7 @@ def _indentedWrite(write):
 
 
 
-def _formatValue(value):
+def _format_value(value):
     """
     Format a value for a task tree.
     """
@@ -114,100 +114,100 @@ def _formatValue(value):
 
 
 
-def _renderTask(write, task, ignoredTaskKeys):
+def _render_task(write, task, ignored_task_keys):
     """
     Render a single ``TaskNode`` as an ``ASCII`` tree.
 
     :param write: Callable taking a single ``bytes`` argument to write the
         output.
     :param task: Eliot task ``dict`` to render.
-    :param ignoredTaskKeys: ``set`` of task key names to ignore.
+    :param ignored_task_keys: ``set`` of task key names to ignore.
     """
-    _write = _indentedWrite(write)
-    numItems = len(task)
+    _write = _indented_write(write)
+    num_items = len(task)
     for i, (key, value) in enumerate(sorted(task.items()), 1):
-        if key not in ignoredTaskKeys:
-            treeChar = '`' if i == numItems else '|'
-            _value = _formatValue(value)
+        if key not in ignored_task_keys:
+            tree_char = '`' if i == num_items else '|'
+            _value = _format_value(value)
             if isinstance(value, dict):
                 write(
-                    '{treeChar}-- {key}:\n'.format(
-                        treeChar=treeChar,
+                    '{tree_char}-- {key}:\n'.format(
+                        tree_char=tree_char,
                         key=key.encode('utf-8')))
-                _renderTask(_write, _value, {})
+                _render_task(_write, _value, {})
             else:
                 write(
-                    '{treeChar}-- {key}: {value}\n'.format(
-                        treeChar=treeChar,
+                    '{tree_char}-- {key}: {value}\n'.format(
+                        tree_char=tree_char,
                         key=key.encode('utf-8'),
-                        value=_truncateValue(_value)))
+                        value=_truncate_value(_value)))
 
 
 
-def _renderTaskNode(write, node, ignoredTaskKeys):
+def _render_task_node(write, node, ignored_task_keys):
     """
     Render a single ``TaskNode`` as an ``ASCII`` tree.
 
     :param write: Callable taking a single ``bytes`` argument to write the
         output.
     :param node: ``TaskNode`` to render.
-    :param ignoredTaskKeys: ``set`` of task key names to ignore.
+    :param ignored_task_keys: ``set`` of task key names to ignore.
     """
-    _childWrite = _indentedWrite(write)
+    _child_write = _indented_write(write)
     if node.task is not None:
         write(
             '+-- {name}\n'.format(
                 # XXX: This is probably wrong in a bunch of places.
                 name=node.name.encode('utf-8')))
-        _renderTask(_childWrite, node.task, ignoredTaskKeys)
+        _render_task(_child_write, node.task, ignored_task_keys)
 
     for child in node.children():
-        _renderTaskNode(_childWrite, child, ignoredTaskKeys)
+        _render_task_node(_child_write, child, ignored_task_keys)
 
 
 
-def renderTaskTree(write, tasktree, ignoredTaskKeys=DEFAULT_IGNORED_KEYS):
+def render_task_tree(write, tasktree, ignored_task_keys=DEFAULT_IGNORED_KEYS):
     """
     Render a task tree as an ``ASCII`` tree.
 
     :param write: Callable taking a single ``bytes`` argument to write the
         output.
     :param tasktree: ``list`` of ``(task_uuid, task_node)``.
-    :param ignoredTaskKeys: ``set`` of task key names to ignore.
+    :param ignored_task_keys: ``set`` of task key names to ignore.
     """
     for task_uuid, node in tasktree:
         write('{name}\n'.format(
             # XXX: This is probably wrong in a bunch of places.
             name=node.name.encode('utf-8')))
-        _renderTaskNode(write, node, ignoredTaskKeys)
+        _render_task_node(write, node, ignored_task_keys)
         write('\n')
 
 
 
-def mergeTasktree(tasktree, fd, processTask=None):
+def merge_tasktree(tasktree, fd, process_task=None):
     """
     Merge Eliot tasks specified in ``fd`` with ``tasktree`.
 
     :type tasktree: ``dict``
     :type fd: ``file``-like
-    :param processTask: Callable taking a single ``dict`` argument, the task
+    :param process_task: Callable taking a single ``dict`` argument, the task
         read from ``fd``, that returns a transformed ``dict``.
     :return: Newly merged task tree.
     """
-    if processTask is None:
-        processTask = lambda task: task
+    if process_task is None:
+        process_task = lambda task: task
     for line in fd:
-        task = processTask(json.loads(line))
+        task = process_task(json.loads(line))
         key = task[u'task_uuid']
         node = tasktree.get(key)
         if node is None:
             node = tasktree[key] = TaskNode(None, key, task[u'timestamp'])
-        node.addChild(TaskNode(task))
+        node.add_child(TaskNode(task))
     return tasktree
 
 
 
-def _convertTimestamp(task):
+def _convert_timestamp(task):
     """
     Convert a ``timestamp`` key to a ``datetime``.
     """
@@ -216,20 +216,20 @@ def _convertTimestamp(task):
 
 
 
-def displayTaskTree(args):
+def display_task_tree(args):
     """
     Read the input files, apply any command-line-specified behaviour and
     display the task tree.
     """
     if not args.files:
         args.files.append(sys.stdin)
-    processTask = None
+    process_task = None
     if args.human_readable:
-        processTask = _convertTimestamp
+        process_task = _convert_timestamp
 
     tasktree = {}
     for fd in args.files:
-        tasktree = mergeTasktree(tasktree, fd, processTask)
+        tasktree = merge_tasktree(tasktree, fd, process_task)
 
     if args.task_uuid is not None:
         node = tasktree.get(args.task_uuid)
@@ -239,10 +239,10 @@ def displayTaskTree(args):
             tasktree = {args.task_uuid: node}
 
     tasktree = sorted(tasktree.items(), key=lambda (_, n): n.sorter)
-    renderTaskTree(
+    render_task_tree(
         write=sys.stdout.write,
         tasktree=tasktree,
-        ignoredTaskKeys=set(args.ignored_task_keys) or DEFAULT_IGNORED_KEYS)
+        ignored_task_keys=set(args.ignored_task_keys) or DEFAULT_IGNORED_KEYS)
 
 
 def main():
@@ -273,4 +273,4 @@ def main():
                         help='''Do not format some task values (such as
                         timestamps) as human-readable''')
     args = parser.parse_args()
-    displayTaskTree(args)
+    display_task_tree(args)
