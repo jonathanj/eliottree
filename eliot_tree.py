@@ -15,7 +15,7 @@ def _truncate_value(value, limit=100):
     values = value.split('\n')
     value = values[0]
     if len(value) > limit or len(values) > 1:
-        return '{}...'.format(value[:limit])
+        return '{} [...]'.format(value[:limit])
     return value
 
 
@@ -104,7 +104,7 @@ def _format_value(value):
     return str(value)
 
 
-def _render_task(write, task, ignored_task_keys):
+def _render_task(write, task, ignored_task_keys, truncate):
     """
     Render a single ``TaskNode`` as an ``ASCII`` tree.
 
@@ -126,14 +126,22 @@ def _render_task(write, task, ignored_task_keys):
                         key=key.encode('utf-8')))
                 _render_task(_write, _value, {})
             else:
+                if truncate:
+                    first_line = _truncate_value(_value)
+                else:
+                    lines = _value.splitlines() or [u'']
+                    first_line = lines.pop(0)
                 write(
                     '{tree_char}-- {key}: {value}\n'.format(
                         tree_char=tree_char,
                         key=key.encode('utf-8'),
-                        value=_truncate_value(_value)))
+                        value=first_line))
+                if not truncate:
+                    for line in lines:
+                        _write(line + '\n')
 
 
-def _render_task_node(write, node, ignored_task_keys):
+def _render_task_node(write, node, ignored_task_keys, truncate):
     """
     Render a single ``TaskNode`` as an ``ASCII`` tree.
 
@@ -148,13 +156,14 @@ def _render_task_node(write, node, ignored_task_keys):
             '+-- {name}\n'.format(
                 # XXX: This is probably wrong in a bunch of places.
                 name=node.name.encode('utf-8')))
-        _render_task(_child_write, node.task, ignored_task_keys)
+        _render_task(_child_write, node.task, ignored_task_keys, truncate)
 
     for child in node.children():
-        _render_task_node(_child_write, child, ignored_task_keys)
+        _render_task_node(_child_write, child, ignored_task_keys, truncate)
 
 
-def render_task_tree(write, tasktree, ignored_task_keys=DEFAULT_IGNORED_KEYS):
+def render_task_tree(write, tasktree, ignored_task_keys=DEFAULT_IGNORED_KEYS,
+                     truncate=False):
     """
     Render a task tree as an ``ASCII`` tree.
 
@@ -167,7 +176,7 @@ def render_task_tree(write, tasktree, ignored_task_keys=DEFAULT_IGNORED_KEYS):
         write('{name}\n'.format(
             # XXX: This is probably wrong in a bunch of places.
             name=node.name.encode('utf-8')))
-        _render_task_node(write, node, ignored_task_keys)
+        _render_task_node(write, node, ignored_task_keys, truncate)
         write('\n')
 
 
@@ -227,7 +236,8 @@ def display_task_tree(args):
     render_task_tree(
         write=sys.stdout.write,
         tasktree=tasktree,
-        ignored_task_keys=set(args.ignored_task_keys) or DEFAULT_IGNORED_KEYS)
+        ignored_task_keys=set(args.ignored_task_keys) or DEFAULT_IGNORED_KEYS,
+        truncate=args.truncate)
 
 
 def main():
@@ -255,5 +265,9 @@ def main():
                         dest='human_readable',
                         help='''Do not format some task values (such as
                         timestamps) as human-readable''')
+    parser.add_argument('--no-truncate',
+                        action='store_false',
+                        dest='truncate',
+                        help='''Do not truncate long values''')
     args = parser.parse_args()
     display_task_tree(args)
