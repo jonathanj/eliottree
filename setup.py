@@ -25,4 +25,7 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
     ],
+    install_requires=[
+        "jmespath==0.7.1"
+    ],
 )

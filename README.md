@@ -53,7 +53,8 @@ was generated from:
 ## Usage
 
 ```
-usage: eliottree.py [-h] [-u UUID] [-i KEY] [--raw] [FILE [FILE ...]]
+usage: eliot-tree [-h] [-u UUID] [-i KEY] [--raw] [--select EXPR]
+                  [FILE [FILE ...]]
 
 Display an Eliot log as a tree of tasks.
 
@@ -70,6 +71,9 @@ optional arguments:
                         standard keys.
   --raw                 Do not format some task values (such as timestamps) as
                         human-readable
+  --select QUERY        Select tasks to be displayed based on a jmespath
+                        query. If any child task is selected the entire top-
+                        level task is selected. See <http://jmespath.org/>
 ```
 
 ## Contribute
