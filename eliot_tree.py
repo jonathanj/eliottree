@@ -124,7 +124,7 @@ def _render_task(write, task, ignored_task_keys, truncate):
                     '{tree_char}-- {key}:\n'.format(
                         tree_char=tree_char,
                         key=key.encode('utf-8')))
-                _render_task(_write, _value, {})
+                _render_task(_write, _value, {}, truncate)
             else:
                 if truncate:
                     first_line = _truncate_value(_value)
