@@ -1,6 +1,7 @@
 import argparse
 import json
 import sys
+from collections import defaultdict
 from datetime import datetime
 
 import jmespath
@@ -45,7 +46,6 @@ class TaskNode(object):
             name = _task_name(task)
         self.name = name
         self.sorter = sorter
-        self.match = set()
 
     def __repr__(self):
         if self.task is None:
@@ -80,12 +80,6 @@ class TaskNode(object):
         """
         return sorted(
             self._children.values(), key=lambda n: n.task[u'task_level'])
-
-    def matched(self, matches):
-        """
-        Node matched some queries.
-        """
-        self.match.update(matches)
 
 
 def _indented_write(write):
@@ -162,7 +156,7 @@ def _render_task_node(write, node, ignored_task_keys):
         _render_task_node(_child_write, child, ignored_task_keys)
 
 
-def render_task_tree(write, tasktree, ignored_task_keys=DEFAULT_IGNORED_KEYS, match=None):
+def render_task_tree(write, tasktree, ignored_task_keys=DEFAULT_IGNORED_KEYS):
     """
     Render a task tree as an ``ASCII`` tree.
 
@@ -172,13 +166,18 @@ def render_task_tree(write, tasktree, ignored_task_keys=DEFAULT_IGNORED_KEYS, ma
     :param ignored_task_keys: ``set`` of task key names to ignore.
     """
     for task_uuid, node in tasktree:
-        if node.match != match:
-            continue
         write('{name}\n'.format(
             # XXX: This is probably wrong in a bunch of places.
             name=node.name.encode('utf-8')))
         _render_task_node(write, node, ignored_task_keys)
         write('\n')
+
+
+def prune_tasktree(tasktree, keep_uuids):
+    """
+    Keep only keys from ``tasktree`` that appear in ``keep_uuids``.
+    """
+    return {k: tasktree[k] for k in keep_uuids}
 
 
 def merge_tasktree(tasktree, fd, process_task=None, filter_func=None):
@@ -195,20 +194,22 @@ def merge_tasktree(tasktree, fd, process_task=None, filter_func=None):
         child task is selected.
     :return: Newly merged task tree.
     """
+    matches = defaultdict(set)
     if process_task is None:
         process_task = lambda task: task
     for line in fd:
         task = process_task(json.loads(line))
         key = task[u'task_uuid']
         node = tasktree.get(key)
-        matched = filter_func is not None and filter_func(task)
         if node is None:
             node = tasktree[key] = TaskNode(task=None,
                                             name=key,
                                             sorter=task[u'timestamp'])
-        node.matched(matched)
         node.add_child(TaskNode(task))
-    return tasktree
+        if filter_func is not None:
+            for i in filter_func(task):
+                matches[i].add(key)
+    return tasktree, matches
 
 
 def _convert_timestamp(task):
@@ -257,15 +258,18 @@ def display_task_tree(args):
         return matched
 
     tasktree = {}
+    matches = {}
     for fd in args.files:
-        tasktree = merge_tasktree(tasktree, fd, process_task, _filter_func)
+        tasktree, _matches = merge_tasktree(
+            tasktree, fd, process_task, _filter_func)
+        matches.update(_matches)
 
+    tasktree = prune_tasktree(tasktree, set.intersection(*matches.values()))
     tasktree = sorted(tasktree.items(), key=lambda (_, n): n.sorter)
     render_task_tree(
         write=sys.stdout.write,
         tasktree=tasktree,
-        ignored_task_keys=set(args.ignored_task_keys) or DEFAULT_IGNORED_KEYS,
-        match=set(range(len(filter_funcs))))
+        ignored_task_keys=set(args.ignored_task_keys) or DEFAULT_IGNORED_KEYS)
 
 
 def main():
