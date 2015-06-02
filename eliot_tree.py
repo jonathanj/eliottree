@@ -38,14 +38,14 @@ def _task_name(task):
 
 
 class TaskNode(object):
-    def __init__(self, task, name=None, sorter=None, hidden=True):
+    def __init__(self, task, name=None, sorter=None):
         self.task = task
         self._children = {}
         if name is None:
             name = _task_name(task)
         self.name = name
         self.sorter = sorter
-        self.hidden = hidden
+        self.match = set()
 
     def __repr__(self):
         if self.task is None:
@@ -81,11 +81,11 @@ class TaskNode(object):
         return sorted(
             self._children.values(), key=lambda n: n.task[u'task_level'])
 
-    def set_visible(self):
+    def matched(self, matches):
         """
-        Make this node visible.
+        Node matched some queries.
         """
-        self.hidden = False
+        self.match.update(matches)
 
 
 def _indented_write(write):
@@ -162,7 +162,7 @@ def _render_task_node(write, node, ignored_task_keys):
         _render_task_node(_child_write, child, ignored_task_keys)
 
 
-def render_task_tree(write, tasktree, ignored_task_keys=DEFAULT_IGNORED_KEYS):
+def render_task_tree(write, tasktree, ignored_task_keys=DEFAULT_IGNORED_KEYS, match=None):
     """
     Render a task tree as an ``ASCII`` tree.
 
@@ -172,7 +172,7 @@ def render_task_tree(write, tasktree, ignored_task_keys=DEFAULT_IGNORED_KEYS):
     :param ignored_task_keys: ``set`` of task key names to ignore.
     """
     for task_uuid, node in tasktree:
-        if node.hidden:
+        if node.match != match:
             continue
         write('{name}\n'.format(
             # XXX: This is probably wrong in a bunch of places.
@@ -201,13 +201,12 @@ def merge_tasktree(tasktree, fd, process_task=None, filter_func=None):
         task = process_task(json.loads(line))
         key = task[u'task_uuid']
         node = tasktree.get(key)
-        hidden = filter_func is not None and not filter_func(task)
+        matched = filter_func is not None and filter_func(task)
         if node is None:
             node = tasktree[key] = TaskNode(task=None,
                                             name=key,
                                             sorter=task[u'timestamp'])
-        if not hidden:
-            node.set_visible()
+        node.matched(matched)
         node.add_child(TaskNode(task))
     return tasktree
 
@@ -222,8 +221,8 @@ def _convert_timestamp(task):
 
 def _filter_by_jmespath(query):
     """
-    A factory function producting a filter function for filtering a task by a
-    jmespath query expression.
+    A factory function producting a filter function for filtering a task by
+    a jmespath query expression.
     """
     expn = jmespath.compile(query)
     def _filter(task):
@@ -244,23 +243,29 @@ def display_task_tree(args):
 
     filter_funcs = []
     if args.select:
-        filter_funcs.append(_filter_by_jmespath(args.select))
+        filter_funcs.extend(map(_filter_by_jmespath, args.select))
 
     if args.task_uuid:
-        filter_funcs.append(_filter_by_jmespath(
-            'task_uuid == `{}`'.format(args.task_uuid)))
+        filter_funcs.append(_filter_by_jmespath([
+            'task_uuid == `{}`'.format(args.task_uuid)]))
 
-    filter_func = lambda x: all(fn(x) for fn in filter_funcs)
+    def _filter_func(x):
+        matched = set()
+        for i, fn in enumerate(filter_funcs):
+            if fn(x):
+                matched.add(i)
+        return matched
 
     tasktree = {}
     for fd in args.files:
-        tasktree = merge_tasktree(tasktree, fd, process_task, filter_func)
+        tasktree = merge_tasktree(tasktree, fd, process_task, _filter_func)
 
     tasktree = sorted(tasktree.items(), key=lambda (_, n): n.sorter)
     render_task_tree(
         write=sys.stdout.write,
         tasktree=tasktree,
-        ignored_task_keys=set(args.ignored_task_keys) or DEFAULT_IGNORED_KEYS)
+        ignored_task_keys=set(args.ignored_task_keys) or DEFAULT_IGNORED_KEYS,
+        match=set(range(len(filter_funcs))))
 
 
 def main():
@@ -289,11 +294,12 @@ def main():
                         help='''Do not format some task values (such as
                         timestamps) as human-readable''')
     parser.add_argument('--select',
+                        action='append',
                         metavar='QUERY',
                         dest='select',
                         help='''Select tasks to be displayed based on a jmespath
-                        query. If any child task is selected the entire
-                        top-level task is selected. See
-                        <http://jmespath.org/>''')
+                        query, can be specified multiple times to mimic logical
+                        AND. If any child task is selected the entire top-level
+                        task is selected. See <http://jmespath.org/>''')
     args = parser.parse_args()
     display_task_tree(args)

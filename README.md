@@ -72,8 +72,9 @@ optional arguments:
   --raw                 Do not format some task values (such as timestamps) as
                         human-readable
   --select QUERY        Select tasks to be displayed based on a jmespath
-                        query. If any child task is selected the entire top-
-                        level task is selected. See <http://jmespath.org/>
+                        query, can be specified multiple times to mimic
+                        logical AND. If any child task is selected the entire
+                        top-level task is selected. See <http://jmespath.org/>
 ```
 
 ## Contribute
