@@ -71,6 +71,9 @@ optional arguments:
                         standard keys.
   --raw                 Do not format some task values (such as timestamps) as
                         human-readable
+  --field-limit LENGTH  Limit the length of field values to LENGTH or a
+                        newline, whichever comes first. Use a length of 0 to
+                        output the complete value.
   --select QUERY        Select tasks to be displayed based on a jmespath
                         query, can be specified multiple times to mimic
                         logical AND. If any child task is selected the entire
