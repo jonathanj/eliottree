@@ -26,6 +26,6 @@ setup(
         'Programming Language :: Python',
     ],
     install_requires=[
-        "jmespath==0.7.1"
+        "jmespath>=0.7.1"
     ],
 )
