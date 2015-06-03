@@ -53,7 +53,8 @@ was generated from:
 ## Usage
 
 ```
-usage: eliottree.py [-h] [-u UUID] [-i KEY] [--raw] [FILE [FILE ...]]
+usage: eliot-tree [-h] [-u UUID] [-i KEY] [--raw] [--select EXPR]
+                  [FILE [FILE ...]]
 
 Display an Eliot log as a tree of tasks.
 
@@ -73,6 +74,10 @@ optional arguments:
   --field-limit LENGTH  Limit the length of field values to LENGTH or a
                         newline, whichever comes first. Use a length of 0 to
                         output the complete value.
+  --select QUERY        Select tasks to be displayed based on a jmespath
+                        query, can be specified multiple times to mimic
+                        logical AND. If any child task is selected the entire
+                        top-level task is selected. See <http://jmespath.org/>
 ```
 
 ## Contribute

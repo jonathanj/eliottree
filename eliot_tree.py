@@ -1,8 +1,10 @@
 import argparse
 import json
 import sys
+from collections import defaultdict
 from datetime import datetime
 
+import jmespath
 
 DEFAULT_IGNORED_KEYS = set([
     u'action_status', u'action_type', u'task_level', u'task_uuid'])
@@ -198,7 +200,14 @@ def render_task_tree(write, tasktree, field_limit,
         write('\n')
 
 
-def merge_tasktree(tasktree, fd, process_task=None):
+def prune_tasktree(tasktree, keep_uuids):
+    """
+    Keep only keys from ``tasktree`` that appear in ``keep_uuids``.
+    """
+    return {k: tasktree[k] for k in keep_uuids}
+
+
+def merge_tasktree(tasktree, fd, process_task=None, filter_func=None):
     """
     Merge Eliot tasks specified in ``fd`` with ``tasktree`.
 
@@ -206,8 +215,13 @@ def merge_tasktree(tasktree, fd, process_task=None):
     :type fd: ``file``-like
     :param process_task: Callable taking a single ``dict`` argument, the task
         read from ``fd``, that returns a transformed ``dict``.
+    :param filter_func: Callable taking a single ``dict`` argument, the task
+        read from ``fd``, that returns a ``bool`` indicating whether the task
+        should be included in the output; the entire task is displayed if any
+        child task is selected.
     :return: Newly merged task tree.
     """
+    matches = defaultdict(set)
     if process_task is None:
         process_task = lambda task: task
     for line in fd:
@@ -215,9 +229,14 @@ def merge_tasktree(tasktree, fd, process_task=None):
         key = task[u'task_uuid']
         node = tasktree.get(key)
         if node is None:
-            node = tasktree[key] = TaskNode(None, key, task[u'timestamp'])
+            node = tasktree[key] = TaskNode(task=None,
+                                            name=key,
+                                            sorter=task[u'timestamp'])
         node.add_child(TaskNode(task))
-    return tasktree
+        if filter_func is not None:
+            for i in filter_func(task):
+                matches[i].add(key)
+    return tasktree, matches
 
 
 def _convert_timestamp(task):
@@ -226,6 +245,17 @@ def _convert_timestamp(task):
     """
     task['timestamp'] = datetime.fromtimestamp(task['timestamp'])
     return task
+
+
+def _filter_by_jmespath(query):
+    """
+    A factory function producting a filter function for filtering a task by
+    a jmespath query expression.
+    """
+    expn = jmespath.compile(query)
+    def _filter(task):
+        return bool(expn.search(task))
+    return _filter
 
 
 def display_task_tree(args):
@@ -239,17 +269,29 @@ def display_task_tree(args):
     if args.human_readable:
         process_task = _convert_timestamp
 
+    filter_funcs = []
+    if args.select:
+        filter_funcs.extend(map(_filter_by_jmespath, args.select))
+
+    if args.task_uuid:
+        filter_funcs.append(_filter_by_jmespath([
+            'task_uuid == `{}`'.format(args.task_uuid)]))
+
+    def _filter_func(x):
+        matched = set()
+        for i, fn in enumerate(filter_funcs):
+            if fn(x):
+                matched.add(i)
+        return matched
+
     tasktree = {}
+    matches = {}
     for fd in args.files:
-        tasktree = merge_tasktree(tasktree, fd, process_task)
+        tasktree, _matches = merge_tasktree(
+            tasktree, fd, process_task, _filter_func)
+        matches.update(_matches)
 
-    if args.task_uuid is not None:
-        node = tasktree.get(args.task_uuid)
-        if node is None:
-            tasktree = {}
-        else:
-            tasktree = {args.task_uuid: node}
-
+    tasktree = prune_tasktree(tasktree, set.intersection(*matches.values()))
     tasktree = sorted(tasktree.items(), key=lambda (_, n): n.sorter)
     render_task_tree(
         write=sys.stdout.write,
@@ -291,5 +333,13 @@ def main():
                         help='''Limit the length of field values to LENGTH or a
                         newline, whichever comes first. Use a length of 0 to
                         output the complete value.''')
+    parser.add_argument('--select',
+                        action='append',
+                        metavar='QUERY',
+                        dest='select',
+                        help='''Select tasks to be displayed based on a jmespath
+                        query, can be specified multiple times to mimic logical
+                        AND. If any child task is selected the entire top-level
+                        task is selected. See <http://jmespath.org/>''')
     args = parser.parse_args()
     display_task_tree(args)
