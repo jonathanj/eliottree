@@ -8,14 +8,14 @@ DEFAULT_IGNORED_KEYS = set([
     u'action_status', u'action_type', u'task_level', u'task_uuid'])
 
 
-def _truncate_value(value, limit=100):
+def _truncate_value(value, limit):
     """
     Truncate long values.
     """
     values = value.split('\n')
     value = values[0]
     if len(value) > limit or len(values) > 1:
-        return '{}...'.format(value[:limit])
+        return '{} [...]'.format(value[:limit])
     return value
 
 
@@ -104,13 +104,15 @@ def _format_value(value):
     return str(value)
 
 
-def _render_task(write, task, ignored_task_keys):
+def _render_task(write, task, ignored_task_keys, field_limit):
     """
     Render a single ``TaskNode`` as an ``ASCII`` tree.
 
     :param write: Callable taking a single ``bytes`` argument to write the
         output.
     :param task: Eliot task ``dict`` to render.
+    :param field_limit: Length at which to begin truncating, ``0`` means no
+        truncation.
     :param ignored_task_keys: ``set`` of task key names to ignore.
     """
     _write = _indented_write(write)
@@ -124,22 +126,32 @@ def _render_task(write, task, ignored_task_keys):
                     '{tree_char}-- {key}:\n'.format(
                         tree_char=tree_char,
                         key=key.encode('utf-8')))
-                _render_task(_write, _value, {})
+                _render_task(_write, _value, {}, field_limit)
             else:
+                if field_limit:
+                    first_line = _truncate_value(_value, field_limit)
+                else:
+                    lines = _value.splitlines() or [u'']
+                    first_line = lines.pop(0)
                 write(
                     '{tree_char}-- {key}: {value}\n'.format(
                         tree_char=tree_char,
                         key=key.encode('utf-8'),
-                        value=_truncate_value(_value)))
+                        value=first_line))
+                if not field_limit:
+                    for line in lines:
+                        _write(line + '\n')
 
 
-def _render_task_node(write, node, ignored_task_keys):
+def _render_task_node(write, node, field_limit, ignored_task_keys):
     """
     Render a single ``TaskNode`` as an ``ASCII`` tree.
 
     :param write: Callable taking a single ``bytes`` argument to write the
         output.
     :param node: ``TaskNode`` to render.
+    :param field_limit: Length at which to begin truncating, ``0`` means no
+        truncation.
     :param ignored_task_keys: ``set`` of task key names to ignore.
     """
     _child_write = _indented_write(write)
@@ -148,26 +160,41 @@ def _render_task_node(write, node, ignored_task_keys):
             '+-- {name}\n'.format(
                 # XXX: This is probably wrong in a bunch of places.
                 name=node.name.encode('utf-8')))
-        _render_task(_child_write, node.task, ignored_task_keys)
+        _render_task(
+            write=_child_write,
+            task=node.task,
+            field_limit=field_limit,
+            ignored_task_keys=ignored_task_keys)
 
     for child in node.children():
-        _render_task_node(_child_write, child, ignored_task_keys)
+        _render_task_node(
+            write=_child_write,
+            node=child,
+            field_limit=field_limit,
+            ignored_task_keys=ignored_task_keys)
 
 
-def render_task_tree(write, tasktree, ignored_task_keys=DEFAULT_IGNORED_KEYS):
+def render_task_tree(write, tasktree, field_limit,
+                     ignored_task_keys=DEFAULT_IGNORED_KEYS):
     """
     Render a task tree as an ``ASCII`` tree.
 
     :param write: Callable taking a single ``bytes`` argument to write the
         output.
     :param tasktree: ``list`` of ``(task_uuid, task_node)``.
+    :param field_limit: Length at which to begin truncating, ``0`` means no
+        truncation.
     :param ignored_task_keys: ``set`` of task key names to ignore.
     """
     for task_uuid, node in tasktree:
         write('{name}\n'.format(
             # XXX: This is probably wrong in a bunch of places.
             name=node.name.encode('utf-8')))
-        _render_task_node(write, node, ignored_task_keys)
+        _render_task_node(
+            write=write,
+            node=node,
+            field_limit=field_limit,
+            ignored_task_keys=ignored_task_keys)
         write('\n')
 
 
@@ -227,7 +254,8 @@ def display_task_tree(args):
     render_task_tree(
         write=sys.stdout.write,
         tasktree=tasktree,
-        ignored_task_keys=set(args.ignored_task_keys) or DEFAULT_IGNORED_KEYS)
+        ignored_task_keys=set(args.ignored_task_keys) or DEFAULT_IGNORED_KEYS,
+        field_limit=args.field_limit)
 
 
 def main():
@@ -255,5 +283,13 @@ def main():
                         dest='human_readable',
                         help='''Do not format some task values (such as
                         timestamps) as human-readable''')
+    parser.add_argument('-l', '--field-limit',
+                        metavar='LENGTH',
+                        type=int,
+                        default=100,
+                        dest='field_limit',
+                        help='''Limit the length of field values to LENGTH or a
+                        newline, whichever comes first. Use a length of 0 to
+                        output the complete value.''')
     args = parser.parse_args()
     display_task_tree(args)
