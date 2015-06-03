@@ -190,7 +190,7 @@ def merge_tasktree(tasktree, fd, process_task=None, filter_func=None):
         read from ``fd``, that returns a transformed ``dict``.
     :param filter_func: Callable taking a single ``dict`` argument, the task
         read from ``fd``, that returns a ``bool`` indicating whether the task
-        should be filtered from the output; the entire task is displayed if any
+        should be included in the output; the entire task is displayed if any
         child task is selected.
     :return: Newly merged task tree.
     """
