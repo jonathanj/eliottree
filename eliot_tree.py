@@ -283,7 +283,7 @@ def main():
                         dest='human_readable',
                         help='''Do not format some task values (such as
                         timestamps) as human-readable''')
-    parser.add_argument('--field-limit',
+    parser.add_argument('-l', '--field-limit',
                         metavar='LENGTH',
                         type=int,
                         default=100,
