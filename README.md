@@ -70,6 +70,9 @@ optional arguments:
                         standard keys.
   --raw                 Do not format some task values (such as timestamps) as
                         human-readable
+  --field-limit LENGTH  Limit the length of field values to LENGTH or a
+                        newline, whichever comes first. Use a length of 0 to
+                        output the complete value.
 ```
 
 ## Contribute
