@@ -28,4 +28,7 @@ setup(
     install_requires=[
         "jmespath>=0.7.1"
     ],
+    extras_require={
+        "dev": ["pytest>=2.7.1", "testtools>=1.8.0"],
+    },
 )

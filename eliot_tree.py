@@ -3,11 +3,26 @@ import json
 import sys
 from collections import defaultdict
 from datetime import datetime
+from itertools import chain, imap
 
 import jmespath
 
+from eliottree.tree import TaskNode, Tree
+
 DEFAULT_IGNORED_KEYS = set([
     u'action_status', u'action_type', u'task_level', u'task_uuid'])
+
+
+def compose(*fs):
+    """
+    Create a function composition.
+
+    :param fs: Iterable of 1-argument functions to compose. Functions are
+        composed from last to first.
+    :return: I{callable} taking 1 argument
+    """
+    return reduce(lambda f, g: lambda x: f(g(x)), fs)
+
 
 
 def _truncate_value(value, limit):
@@ -19,67 +34,6 @@ def _truncate_value(value, limit):
     if len(value) > limit or len(values) > 1:
         return '{} [...]'.format(value[:limit])
     return value
-
-
-def _task_name(task):
-    """
-    Compute the task name for an Eliot task.
-    """
-    level = u','.join(map(unicode, task[u'task_level']))
-    message_type = task.get('message_type', None)
-    if message_type is not None:
-        status = None
-    elif message_type is None:
-        message_type = task['action_type']
-        status = task['action_status']
-    return u'{message_type}@{level}/{status}'.format(
-        message_type=message_type,
-        level=level,
-        status=status)
-
-
-class TaskNode(object):
-    def __init__(self, task, name=None, sorter=None):
-        self.task = task
-        self._children = {}
-        if name is None:
-            name = _task_name(task)
-        self.name = name
-        self.sorter = sorter
-
-    def __repr__(self):
-        if self.task is None:
-            task_uuid = 'root'
-        else:
-            # XXX: This is probably wrong in a bunch of places.
-            task_uuid = self.task[u'task_uuid'].encode('utf-8')
-        return '<{type} {task_uuid} {name} children={children}>'.format(
-            type=type(self).__name__,
-            task_uuid=task_uuid,
-            # XXX: This is probably wrong in a bunch of places.
-            name=self.name.encode('utf-8'),
-            children=len(self._children))
-
-    def add_child(self, node, levels=None):
-        """
-        Add a child ``TaskNode``.
-        """
-        if levels is None:
-            levels = node.task['task_level']
-        levels = list(levels)
-        level = levels.pop(0)
-        children = self._children
-        if level in children:
-            return children[level].add_child(node, levels)
-        assert level not in children
-        children[level] = node
-
-    def children(self):
-        """
-        Get an ordered ``list`` of child ``TaskNode``s.
-        """
-        return sorted(
-            self._children.values(), key=lambda n: n.task[u'task_level'])
 
 
 def _indented_write(write):
@@ -200,45 +154,6 @@ def render_task_tree(write, tasktree, field_limit,
         write('\n')
 
 
-def prune_tasktree(tasktree, keep_uuids):
-    """
-    Keep only keys from ``tasktree`` that appear in ``keep_uuids``.
-    """
-    return {k: tasktree[k] for k in keep_uuids}
-
-
-def merge_tasktree(tasktree, fd, process_task=None, filter_func=None):
-    """
-    Merge Eliot tasks specified in ``fd`` with ``tasktree`.
-
-    :type tasktree: ``dict``
-    :type fd: ``file``-like
-    :param process_task: Callable taking a single ``dict`` argument, the task
-        read from ``fd``, that returns a transformed ``dict``.
-    :param filter_func: Callable taking a single ``dict`` argument, the task
-        read from ``fd``, that returns a ``bool`` indicating whether the task
-        should be included in the output; the entire task is displayed if any
-        child task is selected.
-    :return: Newly merged task tree.
-    """
-    matches = defaultdict(set)
-    if process_task is None:
-        process_task = lambda task: task
-    for line in fd:
-        task = process_task(json.loads(line))
-        key = task[u'task_uuid']
-        node = tasktree.get(key)
-        if node is None:
-            node = tasktree[key] = TaskNode(task=None,
-                                            name=key,
-                                            sorter=task[u'timestamp'])
-        node.add_child(TaskNode(task))
-        if filter_func is not None:
-            for i in filter_func(task):
-                matches[i].add(key)
-    return tasktree, matches
-
-
 def _convert_timestamp(task):
     """
     Convert a ``timestamp`` key to a ``datetime``.
@@ -263,36 +178,27 @@ def display_task_tree(args):
     Read the input files, apply any command-line-specified behaviour and
     display the task tree.
     """
+    def task_transformers():
+        if args.human_readable:
+            yield _convert_timestamp
+        yield json.loads
+
+    def filter_funcs():
+        if args.select:
+            for query in args.select:
+                yield _filter_by_jmespath(query)
+
+        if args.task_uuid:
+            yield _filter_by_jmespath(
+                'task_uuid == `{}`'.format(args.task_uuid))
+
     if not args.files:
         args.files.append(sys.stdin)
-    process_task = None
-    if args.human_readable:
-        process_task = _convert_timestamp
 
-    filter_funcs = []
-    if args.select:
-        filter_funcs.extend(map(_filter_by_jmespath, args.select))
-
-    if args.task_uuid:
-        filter_funcs.append(_filter_by_jmespath([
-            'task_uuid == `{}`'.format(args.task_uuid)]))
-
-    def _filter_func(x):
-        matched = set()
-        for i, fn in enumerate(filter_funcs):
-            if fn(x):
-                matched.add(i)
-        return matched
-
-    tasktree = {}
-    matches = {}
-    for fd in args.files:
-        tasktree, _matches = merge_tasktree(
-            tasktree, fd, process_task, _filter_func)
-        matches.update(_matches)
-
-    tasktree = prune_tasktree(tasktree, set.intersection(*matches.values()))
-    tasktree = sorted(tasktree.items(), key=lambda (_, n): n.sorter)
+    tree = Tree()
+    tasks = imap(compose(*task_transformers()),
+                 chain.from_iterable(args.files))
+    tasktree = tree.nodes(tree.merge_tasks(tasks, filter_funcs()))
     render_task_tree(
         write=sys.stdout.write,
         tasktree=tasktree,
