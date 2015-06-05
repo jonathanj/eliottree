@@ -20,7 +20,7 @@ def task_name(task):
         status=status)
 
 
-class TaskNode(object):
+class _TaskNode(object):
     """
     A node representing an Eliot task and it's child tasks.
 
@@ -31,8 +31,8 @@ class TaskNode(object):
     :ivar name: Node name; this will be derived from the task if it is not
         specified.
 
-    :type _children: ``OrderedDict`` of ``TaskNode``
-    :ivar _children: Child nodes, see ``TaskNode.children``
+    :type _children: ``OrderedDict`` of ``_TaskNode``
+    :ivar _children: Child nodes, see ``_TaskNode.children``
     """
     def __init__(self, task, name=None):
         self.task = task
@@ -57,11 +57,11 @@ class TaskNode(object):
             name=self.name.encode('utf-8'),
             children=len(self._children))
 
-    def add_child(self, node, levels=None):
+    def add_child(self, node):
         """
         Add a child node.
 
-        :type node: ``TaskNode``
+        :type node: ``_TaskNode``
         :param node: Child node to add to the tree, if the child has multiple
             levels it may be added as a grandchild.
         """
@@ -77,7 +77,7 @@ class TaskNode(object):
 
     def first_child(self):
         """
-        First child ``TaskNode``.
+        First child ``_TaskNode``.
         """
         # XXX: The code assumes this is the first node by timestamp (?), but
         # that may not always be true.
@@ -85,7 +85,7 @@ class TaskNode(object):
 
     def children(self):
         """
-        Get a ``list`` of child ``TaskNode``s ordered by task level.
+        Get a ``list`` of child ``_TaskNode``s ordered by task level.
         """
         return sorted(
             self._children.values(), key=lambda n: n.task[u'task_level'])
@@ -101,7 +101,6 @@ class Tree(object):
     """
     def __init__(self):
         self._nodes = {}
-
 
     def nodes(self, uuids=None):
         """
@@ -122,7 +121,6 @@ class Tree(object):
         return sorted(nodes,
                       key=lambda (_, n): n.first_child().task[u'timestamp'])
 
-
     def merge_tasks(self, tasks, filter_funcs=None):
         """
         Merge tasks into the tree.
@@ -134,6 +132,7 @@ class Tree(object):
             ``bool``
         :param filter_funcs: Iterable of predicate functions that given a task
             determine whether to keep it.
+
         :return: ``set`` of task UUIDs that match all of the filter functions,
             can be passed to ``Tree.matching_nodes``, or ``None`` if no filter
             functions were specified.
@@ -147,11 +146,14 @@ class Tree(object):
             key = task[u'task_uuid']
             node = tasktree.get(key)
             if node is None:
-                node = tasktree[key] = TaskNode(task=None, name=key)
-            node.add_child(TaskNode(task))
+                node = tasktree[key] = _TaskNode(task=None, name=key)
+            node.add_child(_TaskNode(task))
             for i, fn in enumerate(filter_funcs):
                 if fn(task):
                     matches[i].add(key)
         if not matches:
             return None
         return set.intersection(*matches.values())
+
+
+__all__ = ['Tree']

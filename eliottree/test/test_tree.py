@@ -1,38 +1,9 @@
 from testtools import TestCase
 from testtools.matchers import Equals, Is, MatchesListwise, raises
 
-from eliottree.tree import TaskNode, Tree, task_name
-
-
-message_task = {
-    "task_uuid": "cdeb220d-7605-4d5f-8341-1a170222e308",
-    "error": False,
-    "timestamp": 1425356700,
-    "message": "Main loop terminated.",
-    "message_type": "twisted:log",
-    "action_type": "nope",
-    "task_level": [1]}
-
-action_task = {
-    "timestamp": 1425356800,
-    "action_status": "started",
-    "task_uuid": "f3a32bb3-ea6b-457c-aa99-08a3d0491ab4",
-    "action_type": "app:action",
-    "task_level": [1]}
-
-nested_action_task = {
-    "timestamp": 1425356900,
-    "action_status": "started",
-    "task_uuid": "f3a32bb3-ea6b-457c-aa99-08a3d0491ab4",
-    "action_type": "app:action:nested",
-    "task_level": [1, 1]}
-
-action_task_end = {
-    "timestamp": 1425356800,
-    "action_status": "succeeded",
-    "task_uuid": "f3a32bb3-ea6b-457c-aa99-08a3d0491ab4",
-    "action_type": "app:action",
-    "task_level": [2]}
+from eliottree.tree import _TaskNode, Tree, task_name
+from eliottree.test.tasks import (
+    action_task, action_task_end, message_task, nested_action_task)
 
 
 class TaskNameTests(TestCase):
@@ -76,44 +47,44 @@ class TaskNameTests(TestCase):
 
 class TaskNodeTests(TestCase):
     """
-    Tests for ``eliottree.tree.TaskNode``.
+    Tests for ``eliottree.tree._TaskNode``.
     """
     def test_repr_root(self):
         """
         Representation of a root node.
         """
-        node = TaskNode(task=None, name=u'foo')
+        node = _TaskNode(task=None, name=u'foo')
         self.assertThat(
             repr(node),
-            Equals('<TaskNode root foo children=0>'))
+            Equals('<_TaskNode root foo children=0>'))
 
     def test_repr(self):
         """
         Representation of a normal task node.
         """
-        node = TaskNode(task=action_task)
+        node = _TaskNode(task=action_task)
         self.assertThat(
             repr(node),
-            Equals('<TaskNode f3a32bb3-ea6b-457c-aa99-08a3d0491ab4 '
+            Equals('<_TaskNode f3a32bb3-ea6b-457c-aa99-08a3d0491ab4 '
                    'app:action@1/started children=0>'))
 
     def test_repr_childen(self):
         """
         Representation of a task node with children.
         """
-        node = TaskNode(task=None, name=u'foo')
-        node.add_child(TaskNode(task=action_task))
+        node = _TaskNode(task=None, name=u'foo')
+        node.add_child(_TaskNode(task=action_task))
         self.assertThat(
             repr(node),
-            Equals('<TaskNode root foo children=1>'))
+            Equals('<_TaskNode root foo children=1>'))
 
     def test_first_child(self):
         """
-        ``TaskNode.first_child`` returns the first child node that was added.
+        ``_TaskNode.first_child`` returns the first child node that was added.
         """
-        node = TaskNode(task=None, name=u'foo')
-        child = TaskNode(task=action_task)
-        child2 = TaskNode(task=action_task_end)
+        node = _TaskNode(task=None, name=u'foo')
+        child = _TaskNode(task=action_task)
+        child2 = _TaskNode(task=action_task_end)
         node.add_child(child2)
         node.add_child(child)
         self.assertThat(
@@ -122,21 +93,21 @@ class TaskNodeTests(TestCase):
 
     def test_no_children(self):
         """
-        ``TaskNode.children`` returns an empty list for a node with no children.
+        ``_TaskNode.children`` returns an empty list for a node with no children.
         """
-        node = TaskNode(task=None, name=u'foo')
+        node = _TaskNode(task=None, name=u'foo')
         self.assertThat(
             node.children(),
             Equals([]))
 
     def test_children(self):
         """
-        ``TaskNode.children`` returns an list of child nodes sorted by their
+        ``_TaskNode.children`` returns an list of child nodes sorted by their
         level regardless of the order they were added.
         """
-        node = TaskNode(task=None, name=u'foo')
-        child = TaskNode(task=action_task)
-        child2 = TaskNode(task=action_task_end)
+        node = _TaskNode(task=None, name=u'foo')
+        child = _TaskNode(task=action_task)
+        child2 = _TaskNode(task=action_task_end)
         node.add_child(child2)
         node.add_child(child)
         self.assertThat(
@@ -145,12 +116,12 @@ class TaskNodeTests(TestCase):
 
     def test_nested_children(self):
         """
-        ``TaskNode.children`` does not include grandchildren.
+        ``_TaskNode.children`` does not include grandchildren.
         """
-        node = TaskNode(task=None, name=u'foo')
-        child = TaskNode(task=action_task)
+        node = _TaskNode(task=None, name=u'foo')
+        child = _TaskNode(task=action_task)
         node.add_child(child)
-        child2 = TaskNode(task=nested_action_task)
+        child2 = _TaskNode(task=nested_action_task)
         node.add_child(child2)
         self.assertThat(
             node.children(),
