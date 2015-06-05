@@ -18,3 +18,6 @@ def filter_by_uuid(task_uuid):
     UUID.
     """
     return filter_by_jmespath('task_uuid == `{}`'.format(task_uuid))
+
+
+__all__ = ['filter_by_jmespath', 'filter_by_uuid']
