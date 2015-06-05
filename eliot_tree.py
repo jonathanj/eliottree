@@ -4,10 +4,10 @@ import sys
 from datetime import datetime
 from itertools import chain, imap
 
-import jmespath
 from toolz import compose
 
-from eliottree import Tree, render_task_nodes
+from eliottree import (
+    Tree, filter_by_jmespath, filter_by_uuid, render_task_nodes)
 
 
 def _convert_timestamp(task):
@@ -16,17 +16,6 @@ def _convert_timestamp(task):
     """
     task['timestamp'] = datetime.fromtimestamp(task['timestamp'])
     return task
-
-
-def _filter_by_jmespath(query):
-    """
-    A factory function producting a filter function for filtering a task by
-    a jmespath query expression.
-    """
-    def _filter(task):
-        return bool(expn.search(task))
-    expn = jmespath.compile(query)
-    return _filter
 
 
 def display_task_tree(args):
@@ -42,11 +31,10 @@ def display_task_tree(args):
     def filter_funcs():
         if args.select:
             for query in args.select:
-                yield _filter_by_jmespath(query)
+                yield filter_by_jmespath(query)
 
         if args.task_uuid:
-            yield _filter_by_jmespath(
-                'task_uuid == `{}`'.format(args.task_uuid))
+            yield filter_by_uuid(args.task_uuid)
 
     if not args.files:
         args.files.append(sys.stdin)
