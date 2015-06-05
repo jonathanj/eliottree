@@ -91,7 +91,6 @@ class _TaskNode(object):
             self._children.values(), key=lambda n: n.task[u'task_level'])
 
 
-
 class Tree(object):
     """
     Eliot task tree.

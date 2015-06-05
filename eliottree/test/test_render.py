@@ -33,7 +33,6 @@ class RenderTaskNodesTests(TestCase):
                 '    +-- app:action@2/succeeded\n'
                 '        `-- timestamp: 1425356800\n\n'))
 
-
     def test_field_limit(self):
         """
         Truncate task values that are longer than the field_limit if specified.
@@ -54,7 +53,6 @@ class RenderTaskNodesTests(TestCase):
                 '        |-- message: Main  [...]\n'
                 '        |-- message_type: twist [...]\n'
                 '        `-- timestamp: 14253 [...]\n\n'))
-
 
     def test_ignored_keys(self):
         """
@@ -78,7 +76,6 @@ class RenderTaskNodesTests(TestCase):
                 '        |-- task_uuid: f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
                 '        `-- timestamp: 1425356800\n\n'))
 
-
     def test_task_data(self):
         """
         Custom task data is rendered as tree elements.
@@ -99,7 +96,6 @@ class RenderTaskNodesTests(TestCase):
                 '        |-- message: Main loop terminated.\n'
                 '        |-- message_type: twisted:log\n'
                 '        `-- timestamp: 1425356700\n\n'))
-
 
     def test_nested(self):
         """

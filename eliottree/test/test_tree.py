@@ -1,9 +1,9 @@
 from testtools import TestCase
 from testtools.matchers import Equals, Is, MatchesListwise, raises
 
-from eliottree.tree import _TaskNode, Tree, task_name
 from eliottree.test.tasks import (
     action_task, action_task_end, message_task, nested_action_task)
+from eliottree.tree import Tree, _TaskNode, task_name
 
 
 class TaskNameTests(TestCase):
@@ -93,7 +93,8 @@ class TaskNodeTests(TestCase):
 
     def test_no_children(self):
         """
-        ``_TaskNode.children`` returns an empty list for a node with no children.
+        ``_TaskNode.children`` returns an empty list for a node with no
+        children.
         """
         node = _TaskNode(task=None, name=u'foo')
         self.assertThat(
@@ -142,7 +143,6 @@ class TreeTests(TestCase):
         tree = Tree()
         self.assertThat(tree.nodes(), Equals([]))
 
-
     def test_merge_tasks(self):
         """
         Merge tasks into the tree and retrieve an list of key-node
@@ -161,7 +161,6 @@ class TreeTests(TestCase):
             MatchesListwise([Equals(message_task),
                              Equals(action_task)]))
 
-
     def test_merge_nested_tasks(self):
         """
         Merge nested tasks into the tree and retrieve an list of key-node
@@ -178,7 +177,6 @@ class TreeTests(TestCase):
             [c.task for n in nodes for c in n.children()],
             MatchesListwise([Equals(action_task),
                              Equals(action_task_end)]))
-
 
     def test_merge_tasks_filtered(self):
         """

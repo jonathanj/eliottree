@@ -10,7 +10,6 @@ from toolz import compose
 from eliottree import Tree, render_task_nodes
 
 
-
 def _convert_timestamp(task):
     """
     Convert a ``timestamp`` key to a ``datetime``.
@@ -24,9 +23,9 @@ def _filter_by_jmespath(query):
     A factory function producting a filter function for filtering a task by
     a jmespath query expression.
     """
-    expn = jmespath.compile(query)
     def _filter(task):
         return bool(expn.search(task))
+    expn = jmespath.compile(query)
     return _filter
 
 
