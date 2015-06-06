@@ -1,5 +1,7 @@
 # eliottree
 
+[![Build Status](https://travis-ci.org/jonathanj/eliottree.svg?branch=16-refactor-into-library)](https://travis-ci.org/jonathanj/eliottree)
+
 Render [Eliot](https://github.com/ClusterHQ/eliot) logs as an ASCII tree.
 
 This output:
