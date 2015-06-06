@@ -1,0 +1,22 @@
+language: python
+python: 2.7
+
+env:
+    - TOX_ENV=py27
+    - TOX_ENV=pep8
+
+install:
+  - pip install coveralls coverage tox
+  - python setup.py --version
+  - pip install -e.[dev]
+
+script:
+  - coverage run --branch --source eliottree $(type -p py.test) eliottree
+  - coverage report -m
+  - tox -e "${TOX_ENV}"
+
+after_success:
+  - coveralls
+
+notifications:
+  email: false

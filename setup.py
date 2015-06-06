@@ -31,6 +31,6 @@ setup(
         "toolz>=0.7.2",
     ],
     extras_require={
-        "dev": ["testtools>=1.8.0"],
+        "dev": ["pytest>=2.7.1", "testtools>=1.8.0"],
     },
 )
