@@ -10,13 +10,13 @@ def _format_value(value, encoding):
     Format a value for a task tree.
     """
     if isinstance(value, datetime):
-        return value.isoformat(' ')
+        return value.isoformat(' ').encode(encoding)
     elif isinstance(value, unicode):
         return value.encode(encoding)
-    elif isinstance(value, dict):
-        return value
-    # XXX: This is probably wrong in a bunch of places.
-    return str(value)
+    elif isinstance(value, str):
+        # We guess bytes values are UTF-8.
+        return value.decode('utf-8', 'replace').encode(encoding)
+    return repr(value).decode('utf-8', 'replace').encode(encoding)
 
 
 def _indented_write(write):
@@ -64,7 +64,6 @@ def _render_task(write, task, ignored_task_keys, field_limit, encoding):
     for i, (key, value) in enumerate(sorted(task.items()), 1):
         if key not in ignored_task_keys:
             tree_char = '`' if i == num_items else '|'
-            _value = _format_value(value, encoding)
             key = key.encode(encoding)
             if isinstance(value, dict):
                 write(
@@ -72,11 +71,12 @@ def _render_task(write, task, ignored_task_keys, field_limit, encoding):
                         tree_char=tree_char,
                         key=key))
                 _render_task(write=_write,
-                             task=_value,
+                             task=value,
                              ignored_task_keys={},
                              field_limit=field_limit,
                              encoding=encoding)
             else:
+                _value = _format_value(value, encoding)
                 if field_limit:
                     first_line = _truncate_value(_value, field_limit)
                 else:
