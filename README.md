@@ -1,5 +1,8 @@
 # eliottree
 
+[![Build Status](https://travis-ci.org/jonathanj/eliottree.svg?branch=16-refactor-into-library)](https://travis-ci.org/jonathanj/eliottree)
+[![Coverage Status](https://coveralls.io/repos/jonathanj/eliottree/badge.svg)](https://coveralls.io/r/jonathanj/eliottree)
+
 Render [Eliot](https://github.com/ClusterHQ/eliot) logs as an ASCII tree.
 
 This output:
