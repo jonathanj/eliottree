@@ -4,6 +4,9 @@ from collections import OrderedDict, defaultdict
 def task_name(task):
     """
     Compute the task name for an Eliot task.
+
+    If we can't find a ``message_type`` or an ``action_type`` field to use to
+    derive the name, then return ``None``.
     """
     if task is None:
         raise ValueError('Cannot compute the task name for {!r}'.format(task))
@@ -12,7 +15,9 @@ def task_name(task):
     if message_type is not None:
         status = None
     elif message_type is None:
-        message_type = task['action_type']
+        message_type = task.get('action_type', None)
+        if message_type is None:
+            return None
         status = task['action_status']
     return u'{message_type}@{level}/{status}'.format(
         message_type=message_type,
@@ -22,7 +27,7 @@ def task_name(task):
 
 class _TaskNode(object):
     """
-    A node representing an Eliot task and it's child tasks.
+    A node representing an Eliot task and its child tasks.
 
     :type task: ``dict``
     :ivar task: Eliot task.
@@ -34,11 +39,14 @@ class _TaskNode(object):
     :type _children: ``OrderedDict`` of ``_TaskNode``
     :ivar _children: Child nodes, see ``_TaskNode.children``
     """
+
+    _DEFAULT_TASK_NAME = u'<UNNAMED TASK>'
+
     def __init__(self, task, name=None):
         self.task = task
         self._children = OrderedDict()
         if name is None:
-            name = task_name(task)
+            name = task_name(task) or self._DEFAULT_TASK_NAME
         self.name = name
 
     def __repr__(self):

@@ -2,7 +2,8 @@ from testtools import TestCase
 from testtools.matchers import Equals, Is, MatchesListwise, raises
 
 from eliottree.test.tasks import (
-    action_task, action_task_end, message_task, nested_action_task)
+    action_task, action_task_end, message_task, nested_action_task,
+    unnamed_message)
 from eliottree.tree import Tree, _TaskNode, task_name
 
 
@@ -36,6 +37,15 @@ class TaskNameTests(TestCase):
             task_name(action_task),
             Equals(u'app:action@1/started'))
 
+    def test_no_action_type(self):
+        """
+        If the task does not include either a ``message_type`` or an
+        ``action_type`` key, then return None.
+        """
+        self.assertThat(
+            task_name(unnamed_message),
+            Is(None))
+
     def test_levels(self):
         """
         Include the task level in the task name.
@@ -67,6 +77,16 @@ class TaskNodeTests(TestCase):
             repr(node),
             Equals('<_TaskNode f3a32bb3-ea6b-457c-aa99-08a3d0491ab4 '
                    'app:action@1/started children=0>'))
+
+    def test_repr_nameless(self):
+        """
+        Representation of a task without a name.
+        """
+        node = _TaskNode(task=unnamed_message)
+        self.assertThat(
+            repr(node),
+            Equals('<_TaskNode cdeb220d-7605-4d5f-8341-1a170222e308 '
+                   '{} children=0>'.format(_TaskNode._DEFAULT_TASK_NAME)))
 
     def test_repr_childen(self):
         """
