@@ -1,3 +1,10 @@
+unnamed_message = {
+    u"task_uuid": u"cdeb220d-7605-4d5f-8341-1a170222e308",
+    u"error": False,
+    u"timestamp": 1425356700,
+    u"message": u"Main loop terminated.",
+    u"task_level": [1]}
+
 message_task = {
     u"task_uuid": u"cdeb220d-7605-4d5f-8341-1a170222e308",
     u"error": False,
