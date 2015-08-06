@@ -175,6 +175,16 @@ class TreeTests(TestCase):
             MatchesListwise([Equals(action_task),
                              Equals(action_task_end)]))
 
+    def test_merge_startless_tasks(self):
+        """
+        Merging a task that will never have a start parent raises
+        ``RuntimeError``.
+        """
+        tree = Tree()
+        self.assertThat(
+            lambda: tree.merge_tasks([action_task_end]),
+            raises(RuntimeError))
+
     def test_merge_tasks_filtered(self):
         """
         Merge tasks into the tree with a filter function, generating a set of

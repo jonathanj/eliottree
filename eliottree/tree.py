@@ -131,16 +131,29 @@ class Tree(object):
         if filter_funcs is None:
             filter_funcs = []
         filter_funcs = list(filter_funcs)
-        for task in tasks:
-            key = task[u'task_uuid']
-            node = tasktree.get(key)
-            if node is None:
-                node = tasktree[key] = _TaskNode(task=task)
-            else:
-                node.add_child(_TaskNode(task))
-            for i, fn in enumerate(filter_funcs):
-                if fn(task):
-                    matches[i].add(key)
+
+        def _merge(tasks):
+            pending = []
+            for task in tasks:
+                key = task[u'task_uuid']
+                node = tasktree.get(key)
+                if node is None:
+                    if task[u'task_level'] != [1]:
+                        pending.append(task)
+                        continue
+                    node = tasktree[key] = _TaskNode(task=task)
+                else:
+                    node.add_child(_TaskNode(task))
+                for i, fn in enumerate(filter_funcs):
+                    if fn(task):
+                        matches[i].add(key)
+            return pending
+
+        pending = _merge(tasks)
+        if pending:
+            pending = _merge(pending)
+            if pending:
+                raise RuntimeError('Some tasks have no start parent', pending)
         if not matches:
             return None
         return set.intersection(*matches.values())
