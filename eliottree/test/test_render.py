@@ -90,8 +90,8 @@ class RenderTaskNodesTests(TestCase):
             fd.getvalue(),
             Equals(
                 'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                '    +-- app:action@1/started\n'
-                '        `-- timestamp: 1425356800\n'
+                '+-- app:action@1/started\n'
+                '    `-- timestamp: 1425356800\n'
                 '    +-- app:action@2/succeeded\n'
                 '        `-- timestamp: 1425356800\n\n'))
 
@@ -111,10 +111,10 @@ class RenderTaskNodesTests(TestCase):
             fd.getvalue(),
             Equals(
                 'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                '    +-- app:action@1/started\n'
-                '        |-- message: this is a\n'
-                '            many line message\n'
-                '        `-- timestamp: 1425356800\n\n'))
+                '+-- app:action@1/started\n'
+                '    |-- message: this is a\n'
+                '        many line message\n'
+                '    `-- timestamp: 1425356800\n\n'))
 
     def test_multiline_field_limit(self):
         """
@@ -132,9 +132,9 @@ class RenderTaskNodesTests(TestCase):
             fd.getvalue(),
             Equals(
                 'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                '    +-- app:action@1/started\n'
-                '        |-- message: this is a [...]\n'
-                '        `-- timestamp: 1425356800\n\n'))
+                '+-- app:action@1/started\n'
+                '    |-- message: this is a [...]\n'
+                '    `-- timestamp: 1425356800\n\n'))
 
     def test_field_limit(self):
         """
@@ -151,11 +151,11 @@ class RenderTaskNodesTests(TestCase):
             fd.getvalue(),
             Equals(
                 'cdeb220d-7605-4d5f-8341-1a170222e308\n'
-                '    +-- twisted:log@1/None\n'
-                '        |-- error: False\n'
-                '        |-- message: Main  [...]\n'
-                '        |-- message_type: twist [...]\n'
-                '        `-- timestamp: 14253 [...]\n\n'))
+                '+-- twisted:log@1/None\n'
+                '    |-- error: False\n'
+                '    |-- message: Main  [...]\n'
+                '    |-- message_type: twist [...]\n'
+                '    `-- timestamp: 14253 [...]\n\n'))
 
     def test_ignored_keys(self):
         """
@@ -173,11 +173,11 @@ class RenderTaskNodesTests(TestCase):
             fd.getvalue(),
             Equals(
                 'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                '    +-- app:action@1/started\n'
-                '        |-- action_status: started\n'
-                '        |-- action_type: app:action\n'
-                '        |-- task_uuid: f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                '        `-- timestamp: 1425356800\n\n'))
+                '+-- app:action@1/started\n'
+                '    |-- action_status: started\n'
+                '    |-- action_type: app:action\n'
+                '    |-- task_uuid: f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                '    `-- timestamp: 1425356800\n\n'))
 
     def test_task_data(self):
         """
@@ -194,11 +194,11 @@ class RenderTaskNodesTests(TestCase):
             fd.getvalue(),
             Equals(
                 'cdeb220d-7605-4d5f-8341-1a170222e308\n'
-                '    +-- twisted:log@1/None\n'
-                '        |-- error: False\n'
-                '        |-- message: Main loop terminated.\n'
-                '        |-- message_type: twisted:log\n'
-                '        `-- timestamp: 1425356700\n\n'))
+                '+-- twisted:log@1/None\n'
+                '    |-- error: False\n'
+                '    |-- message: Main loop terminated.\n'
+                '    |-- message_type: twisted:log\n'
+                '    `-- timestamp: 1425356700\n\n'))
 
     def test_dict_data(self):
         """
@@ -215,10 +215,10 @@ class RenderTaskNodesTests(TestCase):
             fd.getvalue(),
             Equals(
                 'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                '    +-- app:action@1/started\n'
-                '        |-- some_data:\n'
-                '            `-- a: 42\n'
-                '        `-- timestamp: 1425356800\n\n'))
+                '+-- app:action@1/started\n'
+                '    |-- some_data:\n'
+                '        `-- a: 42\n'
+                '    `-- timestamp: 1425356800\n\n'))
 
     def test_nested(self):
         """
@@ -232,7 +232,7 @@ class RenderTaskNodesTests(TestCase):
             fd.getvalue(),
             Equals(
                 'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                '    +-- app:action@1/started\n'
-                '        `-- timestamp: 1425356800\n'
-                '        +-- app:action:nested@1,1/started\n'
-                '            `-- timestamp: 1425356900\n\n'))
+                '+-- app:action@1/started\n'
+                '    `-- timestamp: 1425356800\n'
+                '    +-- app:action:nested@1,1/started\n'
+                '        `-- timestamp: 1425356900\n\n'))

@@ -35,6 +35,8 @@ class _TaskNode(object):
     :ivar _children: Child nodes, see ``_TaskNode.children``
     """
     def __init__(self, task, name=None):
+        if task is None:
+            raise ValueError('Missing eliot task')
         self.task = task
         self._children = OrderedDict()
         if name is None:
@@ -45,11 +47,8 @@ class _TaskNode(object):
         """
         Human-readable representation of the node.
         """
-        if self.task is None:
-            task_uuid = 'root'
-        else:
-            # XXX: This is probably wrong in a bunch of places.
-            task_uuid = self.task[u'task_uuid'].encode('utf-8')
+        # XXX: This is probably wrong in a bunch of places.
+        task_uuid = self.task[u'task_uuid'].encode('utf-8')
         return '<{type} {task_uuid} {name} children={children}>'.format(
             type=type(self).__name__,
             task_uuid=task_uuid,
@@ -74,14 +73,6 @@ class _TaskNode(object):
             else:
                 children[level] = node
         _add_child(self, node.task['task_level'])
-
-    def first_child(self):
-        """
-        First child ``_TaskNode``.
-        """
-        # XXX: The code assumes this is the first node by timestamp (?), but
-        # that may not always be true.
-        return next(self._children.itervalues())
 
     def children(self):
         """
@@ -117,8 +108,7 @@ class Tree(object):
             nodes = ((k, self._nodes[k]) for k in uuids)
         else:
             nodes = self._nodes.iteritems()
-        return sorted(nodes,
-                      key=lambda (_, n): n.first_child().task[u'timestamp'])
+        return sorted(nodes, key=lambda (_, n): n.task[u'timestamp'])
 
     def merge_tasks(self, tasks, filter_funcs=None):
         """
@@ -145,8 +135,9 @@ class Tree(object):
             key = task[u'task_uuid']
             node = tasktree.get(key)
             if node is None:
-                node = tasktree[key] = _TaskNode(task=None, name=key)
-            node.add_child(_TaskNode(task))
+                node = tasktree[key] = _TaskNode(task=task)
+            else:
+                node.add_child(_TaskNode(task))
             for i, fn in enumerate(filter_funcs):
                 if fn(task):
                     matches[i].add(key)

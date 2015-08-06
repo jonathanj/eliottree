@@ -6,6 +6,16 @@ from eliottree.test.tasks import (
 from eliottree.tree import Tree, _TaskNode, task_name
 
 
+def _flattened_tasks(nodes):
+    """
+    Construct a flat iterable of all the tasks for an iterable of nodes.
+    """
+    for n in nodes:
+        yield n.task
+        for c in n.children():
+            yield c.task
+
+
 class TaskNameTests(TestCase):
     """
     Tests for ``eliottree.tree.task_name``.
@@ -49,18 +59,17 @@ class TaskNodeTests(TestCase):
     """
     Tests for ``eliottree.tree._TaskNode``.
     """
-    def test_repr_root(self):
+    def test_none(self):
         """
-        Representation of a root node.
+        Passing ``None`` as the task value raises ``ValueError``
         """
-        node = _TaskNode(task=None, name=u'foo')
         self.assertThat(
-            repr(node),
-            Equals('<_TaskNode root foo children=0>'))
+            lambda: _TaskNode(task=None),
+            raises(ValueError))
 
     def test_repr(self):
         """
-        Representation of a normal task node.
+        Representation of a task node.
         """
         node = _TaskNode(task=action_task)
         self.assertThat(
@@ -72,31 +81,19 @@ class TaskNodeTests(TestCase):
         """
         Representation of a task node with children.
         """
-        node = _TaskNode(task=None, name=u'foo')
-        node.add_child(_TaskNode(task=action_task))
+        node = _TaskNode(task=action_task, name=u'foo')
+        node.add_child(_TaskNode(task=message_task))
         self.assertThat(
             repr(node),
-            Equals('<_TaskNode root foo children=1>'))
-
-    def test_first_child(self):
-        """
-        ``_TaskNode.first_child`` returns the first child node that was added.
-        """
-        node = _TaskNode(task=None, name=u'foo')
-        child = _TaskNode(task=action_task)
-        child2 = _TaskNode(task=action_task_end)
-        node.add_child(child2)
-        node.add_child(child)
-        self.assertThat(
-            node.first_child(),
-            Equals(child2))
+            Equals('<_TaskNode f3a32bb3-ea6b-457c-aa99-08a3d0491ab4 '
+                   'foo children=1>'))
 
     def test_no_children(self):
         """
         ``_TaskNode.children`` returns an empty list for a node with no
         children.
         """
-        node = _TaskNode(task=None, name=u'foo')
+        node = _TaskNode(task=action_task, name=u'foo')
         self.assertThat(
             node.children(),
             Equals([]))
@@ -106,8 +103,8 @@ class TaskNodeTests(TestCase):
         ``_TaskNode.children`` returns an list of child nodes sorted by their
         level regardless of the order they were added.
         """
-        node = _TaskNode(task=None, name=u'foo')
-        child = _TaskNode(task=action_task)
+        node = _TaskNode(task=action_task, name=u'foo')
+        child = _TaskNode(task=nested_action_task)
         child2 = _TaskNode(task=action_task_end)
         node.add_child(child2)
         node.add_child(child)
@@ -119,8 +116,8 @@ class TaskNodeTests(TestCase):
         """
         ``_TaskNode.children`` does not include grandchildren.
         """
-        node = _TaskNode(task=None, name=u'foo')
-        child = _TaskNode(task=action_task)
+        node = _TaskNode(task=action_task, name=u'foo')
+        child = _TaskNode(task=message_task)
         node.add_child(child)
         child2 = _TaskNode(task=nested_action_task)
         node.add_child(child2)
@@ -157,7 +154,7 @@ class TreeTests(TestCase):
             Equals(['cdeb220d-7605-4d5f-8341-1a170222e308',
                     'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4']))
         self.assertThat(
-            [c.task for n in nodes for c in n.children()],
+            list(_flattened_tasks(nodes)),
             MatchesListwise([Equals(message_task),
                              Equals(action_task)]))
 
@@ -174,7 +171,7 @@ class TreeTests(TestCase):
             list(keys),
             Equals(['f3a32bb3-ea6b-457c-aa99-08a3d0491ab4']))
         self.assertThat(
-            [c.task for n in nodes for c in n.children()],
+            list(_flattened_tasks(nodes)),
             MatchesListwise([Equals(action_task),
                              Equals(action_task_end)]))
 
@@ -193,6 +190,7 @@ class TreeTests(TestCase):
         self.expectThat(
             list(keys),
             Equals(list(matches)))
+
         self.assertThat(
-            [c.task for n in nodes for c in n.children()],
+            list(_flattened_tasks(nodes)),
             MatchesListwise([Equals(action_task)]))

@@ -113,16 +113,15 @@ def _render_task_node(write, node, field_limit, ignored_task_keys, encoding):
     :param encoding: Encoding to use when rendering.
     """
     _child_write = _indented_write(write)
-    if node.task is not None:
-        write(
-            '+-- {name}\n'.format(
-                name=node.name.encode(encoding)))
-        _render_task(
-            write=_child_write,
-            task=node.task,
-            field_limit=field_limit,
-            ignored_task_keys=ignored_task_keys,
-            encoding=encoding)
+    write(
+        '+-- {name}\n'.format(
+            name=node.name.encode(encoding)))
+    _render_task(
+        write=_child_write,
+        task=node.task,
+        field_limit=field_limit,
+        ignored_task_keys=ignored_task_keys,
+        encoding=encoding)
 
     for child in node.children():
         _render_task_node(
@@ -159,7 +158,7 @@ def render_task_nodes(write, nodes, field_limit, ignored_task_keys=None,
         ignored_task_keys = DEFAULT_IGNORED_KEYS
     for task_uuid, node in nodes:
         write('{name}\n'.format(
-            name=node.name.encode(encoding)))
+            name=node.task['task_uuid'].encode(encoding)))
         _render_task_node(
             write=write,
             node=node,
