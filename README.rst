@@ -10,13 +10,13 @@ This output:
 
 .. code-block::
 
-   $ eliot-tree < eliot.log
+   $ eliot-tree eliot.log
    f3a32bb3-ea6b-457c-aa99-08a3d0491ab4
-       +-- app:soap:client:request@1/started
-           |-- dump: /home/user/dump_files/20150303/1425356936.28_Client_req.xml
-           |-- soapAction: a_soap_action
-           |-- timestamp: 2015-03-03 06:28:56.278875
-           `-- uri: http://example.org/soap
+   +-- app:soap:client:request@1/started
+       |-- dump: /home/user/dump_files/20150303/1425356936.28_Client_req.xml
+       |-- soapAction: a_soap_action
+       |-- timestamp: 2015-03-03 06:28:56.278875
+       `-- uri: http://example.org/soap
        +-- app:soap:client:success@2,1/started
            `-- timestamp: 2015-03-03 06:28:57.516579
            +-- app:soap:client:success@2,2/succeeded
@@ -27,11 +27,11 @@ This output:
            `-- timestamp: 2015-03-03 06:28:57.517161
 
    89a56df5-d808-4a7c-8526-e603aae2e2f2
-       +-- app:soap:service:request@1/started
-           |-- dump: /home/user/dump_files/20150303/1425357068.03_Service_req.xml
-           |-- soapAction: method
-           |-- timestamp: 2015-03-03 06:31:08.032091
-           `-- uri: /endpoints/soap/method
+   +-- app:soap:service:request@1/started
+       |-- dump: /home/user/dump_files/20150303/1425357068.03_Service_req.xml
+       |-- soapAction: method
+       |-- timestamp: 2015-03-03 06:31:08.032091
+       `-- uri: /endpoints/soap/method
        +-- app:soap:service:success@2,1/started
            `-- timestamp: 2015-03-03 06:31:11.512330
            +-- app:soap:service:success@2,2/succeeded
