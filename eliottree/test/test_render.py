@@ -151,10 +151,9 @@ class RenderTaskNodesTests(TestCase):
             fd.getvalue(),
             Equals(
                 'cdeb220d-7605-4d5f-8341-1a170222e308\n'
-                '+-- twisted:log@1/None\n'
+                '+-- twisted:log@1\n'
                 '    |-- error: False\n'
                 '    |-- message: Main  [...]\n'
-                '    |-- message_type: twist [...]\n'
                 '    `-- timestamp: 14253 [...]\n\n'))
 
     def test_ignored_keys(self):
@@ -194,10 +193,9 @@ class RenderTaskNodesTests(TestCase):
             fd.getvalue(),
             Equals(
                 'cdeb220d-7605-4d5f-8341-1a170222e308\n'
-                '+-- twisted:log@1/None\n'
+                '+-- twisted:log@1\n'
                 '    |-- error: False\n'
                 '    |-- message: Main loop terminated.\n'
-                '    |-- message_type: twisted:log\n'
                 '    `-- timestamp: 1425356700\n\n'))
 
     def test_dict_data(self):

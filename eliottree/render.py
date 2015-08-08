@@ -2,7 +2,8 @@ from datetime import datetime
 
 
 DEFAULT_IGNORED_KEYS = set([
-    u'action_status', u'action_type', u'task_level', u'task_uuid'])
+    u'action_status', u'action_type', u'task_level', u'task_uuid',
+    u'message_type'])
 
 
 def _format_value(value, encoding):

@@ -13,13 +13,13 @@ def task_name(task):
     level = u','.join(map(unicode, task[u'task_level']))
     message_type = task.get('message_type', None)
     if message_type is not None:
-        status = None
+        status = u''
     elif message_type is None:
         message_type = task.get('action_type', None)
         if message_type is None:
             return None
-        status = task['action_status']
-    return u'{message_type}@{level}/{status}'.format(
+        status = u'/' + task['action_status']
+    return u'{message_type}@{level}{status}'.format(
         message_type=message_type,
         level=level,
         status=status)

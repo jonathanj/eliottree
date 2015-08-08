@@ -36,7 +36,7 @@ class TaskNameTests(TestCase):
         """
         self.assertThat(
             task_name(message_task),
-            Equals(u'twisted:log@1/None'))
+            Equals(u'twisted:log@1'))
 
     def test_no_message_type(self):
         """
