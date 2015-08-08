@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='eliot-tree',
-    version='15.1.0',
+    version='15.2.0',
     description='Render Eliot logs as an ASCII tree',
     author='Jonathan Jacobs',
     url='https://github.com/jonathanj/eliottree',
