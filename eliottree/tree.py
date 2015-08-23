@@ -112,7 +112,7 @@ class Tree(object):
         :return: Iterable of key and node pairs for top-level nodes, sorted by
             timestamp.
         """
-        if uuids:
+        if uuids is not None:
             nodes = ((k, self._nodes[k]) for k in uuids)
         else:
             nodes = self._nodes.iteritems()
@@ -135,10 +135,10 @@ class Tree(object):
             functions were specified.
         """
         tasktree = self._nodes
-        matches = defaultdict(set)
         if filter_funcs is None:
             filter_funcs = []
         filter_funcs = list(filter_funcs)
+        matches = dict((i, set()) for i, _ in enumerate(filter_funcs))
 
         def _merge(tasks):
             pending = []

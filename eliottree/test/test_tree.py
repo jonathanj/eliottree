@@ -224,3 +224,12 @@ class TreeTests(TestCase):
         self.assertThat(
             list(_flattened_tasks(nodes)),
             MatchesListwise([Equals(action_task)]))
+
+    def test_merge_tasks_no_matches(self):
+        """
+        Merging tasks when no tasks match returns an empty set of tasks.
+        """
+        tree = Tree()
+        matches = tree.merge_tasks(
+            [action_task, message_task], [lambda task: False])
+        self.expectThat(list(matches), Equals([]))
