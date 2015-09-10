@@ -90,6 +90,19 @@ class _TaskNode(object):
             self._children.values(), key=lambda n: n.task[u'task_level'])
 
 
+def missing_start_task(task_missing_parent):
+    """
+    Create a fake start task for an existing task that happens to be missing
+    one.
+    """
+    return {
+        u'action_type': u'<missing start task>',
+        u'action_status': u'started',
+        u'timestamp': task_missing_parent[u'timestamp'],
+        u'task_uuid': task_missing_parent[u'task_uuid'],
+        u'task_level': [1]}
+
+
 class Tree(object):
     """
     Eliot task tree.
@@ -140,16 +153,22 @@ class Tree(object):
         filter_funcs = list(filter_funcs)
         matches = dict((i, set()) for i, _ in enumerate(filter_funcs))
 
-        def _merge(tasks):
+        def _merge(tasks, create_missing_tasks=False):
             pending = []
             for task in tasks:
                 key = task[u'task_uuid']
                 node = tasktree.get(key)
                 if node is None:
                     if task[u'task_level'] != [1]:
-                        pending.append(task)
-                        continue
-                    node = tasktree[key] = _TaskNode(task=task)
+                        if not create_missing_tasks:
+                            pending.append(task)
+                            continue
+                        else:
+                            n = tasktree[key] = _TaskNode(
+                                task=missing_start_task(task))
+                            n.add_child(_TaskNode(task))
+                    else:
+                        node = tasktree[key] = _TaskNode(task=task)
                 else:
                     node.add_child(_TaskNode(task))
                 for i, fn in enumerate(filter_funcs):
@@ -159,7 +178,7 @@ class Tree(object):
 
         pending = _merge(tasks)
         if pending:
-            pending = _merge(pending)
+            pending = _merge(pending, True)
             if pending:
                 raise RuntimeError('Some tasks have no start parent', pending)
         if not matches:
