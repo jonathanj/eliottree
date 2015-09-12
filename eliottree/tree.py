@@ -1,6 +1,3 @@
-from collections import OrderedDict, defaultdict
-
-
 def task_name(task):
     """
     Compute the task name for an Eliot task.
@@ -36,7 +33,7 @@ class _TaskNode(object):
     :ivar name: Node name; this will be derived from the task if it is not
         specified.
 
-    :type _children: ``OrderedDict`` of ``_TaskNode``
+    :type _children: ``dict`` of ``_TaskNode``
     :ivar _children: Child nodes, see ``_TaskNode.children``
     """
 
@@ -46,7 +43,7 @@ class _TaskNode(object):
         if task is None:
             raise ValueError('Missing eliot task')
         self.task = task
-        self._children = OrderedDict()
+        self._children = dict()
         if name is None:
             name = task_name(task) or self._DEFAULT_TASK_NAME
         self.name = name
