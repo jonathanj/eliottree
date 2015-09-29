@@ -15,7 +15,7 @@ rendered_message_task = (
     '+-- twisted:log@1\n'
     '    |-- error: False\n'
     '    |-- message: Main loop terminated.\n'
-    '    `-- timestamp: 2015-03-02 23:25:00\n\n'
+    '    `-- timestamp: 2015-03-03 04:25:00\n\n'
 )
 
 
