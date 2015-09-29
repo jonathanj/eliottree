@@ -30,11 +30,11 @@ def build_task_nodes(files=None, select=None, task_uuid=None,
         yield json.loads
 
     def filter_funcs():
-        if select:
+        if select is not None:
             for query in select:
                 yield filter_by_jmespath(query)
 
-        if task_uuid:
+        if task_uuid is not None:
             yield filter_by_uuid(task_uuid)
 
     if files is None:

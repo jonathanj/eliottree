@@ -157,13 +157,13 @@ class Tree(object):
                 node = tasktree.get(key)
                 if node is None:
                     if task[u'task_level'] != [1]:
-                        if not create_missing_tasks:
-                            pending.append(task)
-                            continue
-                        else:
+                        if create_missing_tasks:
                             n = tasktree[key] = _TaskNode(
                                 task=missing_start_task(task))
                             n.add_child(_TaskNode(task))
+                        else:
+                            pending.append(task)
+                            continue
                     else:
                         node = tasktree[key] = _TaskNode(task=task)
                 else:
