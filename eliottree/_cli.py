@@ -37,13 +37,13 @@ def build_task_nodes(files=None, select=None, task_uuid=None,
         if task_uuid is not None:
             yield filter_by_uuid(task_uuid)
 
-    if files is None:
+    if not files:
         files = [sys.stdin]
 
     tree = Tree()
     tasks = imap(compose(*task_transformers()),
                  chain.from_iterable(files))
-    return tree.nodes(tree.merge_tasks(tasks, filter_funcs())),
+    return tree.nodes(tree.merge_tasks(tasks, filter_funcs()))
 
 
 def display_task_tree(args):
@@ -70,7 +70,7 @@ def main():
                         metavar='FILE',
                         nargs='*',
                         type=argparse.FileType('r'),
-                        help='''Files to process''')
+                        help='''Files to process. Omit to read from stdin.''')
     parser.add_argument('-u', '--task-uuid',
                         dest='task_uuid',
                         metavar='UUID',
