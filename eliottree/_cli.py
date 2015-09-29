@@ -18,33 +18,47 @@ def _convert_timestamp(task):
     return task
 
 
+def build_task_nodes(files=None, select=None, task_uuid=None,
+                     human_readable=True):
+    """
+    Build the task nodes given some input data, query criteria and formatting
+    options.
+    """
+    def task_transformers():
+        if human_readable:
+            yield _convert_timestamp
+        yield json.loads
+
+    def filter_funcs():
+        if select is not None:
+            for query in select:
+                yield filter_by_jmespath(query)
+
+        if task_uuid is not None:
+            yield filter_by_uuid(task_uuid)
+
+    if files is None:
+        files = [sys.stdin]
+
+    tree = Tree()
+    tasks = imap(compose(*task_transformers()),
+                 chain.from_iterable(files))
+    return tree.nodes(tree.merge_tasks(tasks, filter_funcs())),
+
+
 def display_task_tree(args):
     """
     Read the input files, apply any command-line-specified behaviour and
     display the task tree.
     """
-    def task_transformers():
-        if args.human_readable:
-            yield _convert_timestamp
-        yield json.loads
-
-    def filter_funcs():
-        if args.select:
-            for query in args.select:
-                yield filter_by_jmespath(query)
-
-        if args.task_uuid:
-            yield filter_by_uuid(args.task_uuid)
-
-    if not args.files:
-        args.files.append(sys.stdin)
-
-    tree = Tree()
-    tasks = imap(compose(*task_transformers()),
-                 chain.from_iterable(args.files))
+    nodes = build_task_nodes(
+        files=args.files,
+        select=args.select,
+        task_uuid=args.task_uuid,
+        human_readable=args.human_readable)
     render_task_nodes(
         write=sys.stdout.write,
-        nodes=tree.nodes(tree.merge_tasks(tasks, filter_funcs())),
+        nodes=nodes,
         ignored_task_keys=set(args.ignored_task_keys) or None,
         field_limit=args.field_limit)
 

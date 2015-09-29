@@ -4,7 +4,7 @@ from testtools.matchers import Equals, Is, MatchesListwise, raises
 from eliottree.test.tasks import (
     action_task, action_task_end, message_task, nested_action_task,
     unnamed_message)
-from eliottree.tree import Tree, _TaskNode, task_name
+from eliottree.tree import Tree, _TaskNode, missing_start_task, task_name
 
 
 def _flattened_tasks(nodes):
@@ -197,13 +197,21 @@ class TreeTests(TestCase):
 
     def test_merge_startless_tasks(self):
         """
-        Merging a task that will never have a start parent raises
-        ``RuntimeError``.
+        Merging a task that will never have a start parent creates a fake start
+        task.
         """
         tree = Tree()
+        missing_task = missing_start_task(action_task_end)
+        matches = tree.merge_tasks([action_task_end])
+        self.expectThat(matches, Is(None))
+        keys, nodes = zip(*tree.nodes())
+        self.expectThat(
+            list(keys),
+            Equals(['f3a32bb3-ea6b-457c-aa99-08a3d0491ab4']))
         self.assertThat(
-            lambda: tree.merge_tasks([action_task_end]),
-            raises(RuntimeError))
+            list(_flattened_tasks(nodes)),
+            MatchesListwise([Equals(missing_task),
+                             Equals(action_task_end)]))
 
     def test_merge_tasks_filtered(self):
         """
