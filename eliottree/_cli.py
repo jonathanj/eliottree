@@ -14,7 +14,7 @@ def _convert_timestamp(task):
     """
     Convert a ``timestamp`` key to a ``datetime``.
     """
-    task['timestamp'] = datetime.fromtimestamp(task['timestamp'])
+    task['timestamp'] = datetime.utcfromtimestamp(task['timestamp'])
     return task
 
 
@@ -87,7 +87,7 @@ def main():
                         action='store_false',
                         dest='human_readable',
                         help='''Do not format some task values (such as
-                        timestamps) as human-readable''')
+                        UTC timestamps) as human-readable''')
     parser.add_argument('-l', '--field-limit',
                         metavar='LENGTH',
                         type=int,
