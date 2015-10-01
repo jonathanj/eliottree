@@ -84,8 +84,8 @@ class TaskNodeTests(TestCase):
         node = _TaskNode(task=action_task)
         self.assertThat(
             repr(node),
-            Equals('<_TaskNode f3a32bb3-ea6b-457c-aa99-08a3d0491ab4 '
-                   'app:action@1/started children=0>'))
+            Equals("<_TaskNode 'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4' "
+                   "'app:action@1/started' children=0>"))
 
     def test_repr_nameless(self):
         """
@@ -94,8 +94,8 @@ class TaskNodeTests(TestCase):
         node = _TaskNode(task=unnamed_message)
         self.assertThat(
             repr(node),
-            Equals('<_TaskNode cdeb220d-7605-4d5f-8341-1a170222e308 '
-                   '{} children=0>'.format(_TaskNode._DEFAULT_TASK_NAME)))
+            Equals("<_TaskNode 'cdeb220d-7605-4d5f-8341-1a170222e308' "
+                   "'<UNNAMED TASK>' children=0>"))
 
     def test_repr_childen(self):
         """
@@ -105,8 +105,8 @@ class TaskNodeTests(TestCase):
         node.add_child(_TaskNode(task=message_task))
         self.assertThat(
             repr(node),
-            Equals('<_TaskNode f3a32bb3-ea6b-457c-aa99-08a3d0491ab4 '
-                   'foo children=1>'))
+            Equals("<_TaskNode 'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4' "
+                   "'foo' children=1>"))
 
     def test_no_children(self):
         """

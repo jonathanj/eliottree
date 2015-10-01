@@ -1,3 +1,7 @@
+from six import text_type as unicode
+from six import PY2
+
+
 def task_name(task):
     """
     Compute the task name for an Eliot task.
@@ -52,13 +56,16 @@ class _TaskNode(object):
         """
         Human-readable representation of the node.
         """
-        # XXX: This is probably wrong in a bunch of places.
-        task_uuid = self.task[u'task_uuid'].encode('utf-8')
-        return '<{type} {task_uuid} {name} children={children}>'.format(
+        task_uuid = self.task[u'task_uuid']
+        name = self.name
+        if PY2:
+            # XXX: This is probably wrong in a bunch of places.
+            task_uuid = task_uuid.encode('utf-8')
+            name = name.encode('utf-8')
+        return '<{type} {task_uuid!r} {name!r} children={children}>'.format(
             type=type(self).__name__,
             task_uuid=task_uuid,
-            # XXX: This is probably wrong in a bunch of places.
-            name=self.name.encode('utf-8'),
+            name=name,
             children=len(self._children))
 
     def add_child(self, node):
@@ -125,8 +132,8 @@ class Tree(object):
         if uuids is not None:
             nodes = ((k, self._nodes[k]) for k in uuids)
         else:
-            nodes = self._nodes.iteritems()
-        return sorted(nodes, key=lambda (_, n): n.task[u'timestamp'])
+            nodes = self._nodes.items()
+        return sorted(nodes, key=lambda x: x[1].task[u'timestamp'])
 
     def merge_tasks(self, tasks, filter_funcs=None):
         """

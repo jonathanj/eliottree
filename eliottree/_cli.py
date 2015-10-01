@@ -1,9 +1,12 @@
 import argparse
+import codecs
 import json
 import sys
 from datetime import datetime
-from itertools import chain, imap
+from itertools import chain
 
+from six import PY3
+from six.moves import map
 from toolz import compose
 
 from eliottree import (
@@ -38,11 +41,14 @@ def build_task_nodes(files=None, select=None, task_uuid=None,
             yield filter_by_uuid(task_uuid)
 
     if not files:
-        files = [sys.stdin]
+        if PY3:
+            files = [sys.stdin]
+        else:
+            files = [codecs.getreader('utf-8')(sys.stdin)]
 
     tree = Tree()
-    tasks = imap(compose(*task_transformers()),
-                 chain.from_iterable(files))
+    tasks = map(compose(*task_transformers()),
+                chain.from_iterable(files))
     return tree.nodes(tree.merge_tasks(tasks, filter_funcs()))
 
 
@@ -51,13 +57,18 @@ def display_task_tree(args):
     Read the input files, apply any command-line-specified behaviour and
     display the task tree.
     """
+    if PY3:
+        write = sys.stdout.write
+    else:
+        write = codecs.getwriter('utf-8')(sys.stdout).write
+
     nodes = build_task_nodes(
         files=args.files,
         select=args.select,
         task_uuid=args.task_uuid,
         human_readable=args.human_readable)
     render_task_nodes(
-        write=sys.stdout.write,
+        write=write,
         nodes=nodes,
         ignored_task_keys=set(args.ignored_task_keys) or None,
         field_limit=args.field_limit)

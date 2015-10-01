@@ -27,6 +27,7 @@ setup(
         'Programming Language :: Python',
     ],
     install_requires=[
+        "six>=1.9.0",
         "jmespath>=0.7.1",
         "toolz>=0.7.2",
     ],
