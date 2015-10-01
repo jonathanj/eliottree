@@ -29,7 +29,6 @@ class DumpJsonBytesTests(TestCase):
             result,
             Equals(b'{"a": 42}'))
 
-
     def test_binary(self):
         """
         Binary results are left as-is.
