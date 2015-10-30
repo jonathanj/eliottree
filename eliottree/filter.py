@@ -34,7 +34,6 @@ def filter_by_start_date(start_date):
     date and time.
     """
     def _filter(task):
-        print repr(start_date)
         return _parse_timestamp(task['timestamp']) >= start_date
     return _filter
 
