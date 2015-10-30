@@ -2,36 +2,20 @@ import argparse
 import codecs
 import json
 import sys
-from datetime import datetime
 from itertools import chain
 
 from six import PY3
 from six.moves import map
-from toolz import compose
 
 from eliottree import (
     Tree, filter_by_jmespath, filter_by_uuid, render_task_nodes)
 
 
-def _convert_timestamp(task):
-    """
-    Convert a ``timestamp`` key to a ``datetime``.
-    """
-    task['timestamp'] = datetime.utcfromtimestamp(task['timestamp'])
-    return task
-
-
-def build_task_nodes(files=None, select=None, task_uuid=None,
-                     human_readable=True):
+def build_task_nodes(files=None, select=None, task_uuid=None):
     """
     Build the task nodes given some input data, query criteria and formatting
     options.
     """
-    def task_transformers():
-        if human_readable:
-            yield _convert_timestamp
-        yield json.loads
-
     def filter_funcs():
         if select is not None:
             for query in select:
@@ -47,8 +31,7 @@ def build_task_nodes(files=None, select=None, task_uuid=None,
             files = [codecs.getreader('utf-8')(sys.stdin)]
 
     tree = Tree()
-    tasks = map(compose(*task_transformers()),
-                chain.from_iterable(files))
+    tasks = map(json.loads, chain.from_iterable(files))
     return tree.nodes(tree.merge_tasks(tasks, filter_funcs()))
 
 
@@ -65,13 +48,13 @@ def display_task_tree(args):
     nodes = build_task_nodes(
         files=args.files,
         select=args.select,
-        task_uuid=args.task_uuid,
-        human_readable=args.human_readable)
+        task_uuid=args.task_uuid)
     render_task_nodes(
         write=write,
         nodes=nodes,
         ignored_task_keys=set(args.ignored_task_keys) or None,
-        field_limit=args.field_limit)
+        field_limit=args.field_limit,
+        human_readable=args.human_readable)
 
 
 def main():
