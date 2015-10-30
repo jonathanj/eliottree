@@ -1,9 +1,25 @@
 language: python
 python: 2.7
+sudo: false
+cache:
+    directories:
+        - $HOME/.cache/pip
+branches:
+    only:
+        - master
 
 env:
     - TOX_ENV=py27
+    - TOX_ENV=py34
+    #- TOX_ENV=py35
     - TOX_ENV=pep8
+
+# Hack until <https://github.com/travis-ci/travis-ci/issues/4794> is resolved.
+matrix:
+  include:
+    - python: 3.5
+      env:
+        - TOX_ENV=py35
 
 install:
   - pip install coveralls coverage tox

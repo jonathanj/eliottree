@@ -1,6 +1,6 @@
 from datetime import datetime
-from StringIO import StringIO
 
+from six import PY3, StringIO, u
 from testtools import TestCase
 from testtools.matchers import Equals
 
@@ -21,53 +21,43 @@ class FormatValueTests(TestCase):
         """
         now = datetime(2015, 6, 6, 22, 57, 12)
         self.assertThat(
-            _format_value(now, 'utf-8'),
+            _format_value(now),
             Equals('2015-06-06 22:57:12'))
-        self.assertThat(
-            _format_value(now, 'utf-16'),
-            Equals('\xff\xfe2\x000\x001\x005\x00-\x000\x006\x00-\x000\x006'
-                   '\x00 \x002\x002\x00:\x005\x007\x00:\x001\x002\x00'))
 
     def test_unicode(self):
         """
         Encode ``unicode`` values as the specified encoding.
         """
         self.assertThat(
-            _format_value(u'\N{SNOWMAN}', 'utf-8'),
-            Equals('\xe2\x98\x83'))
-        self.assertThat(
-            _format_value(u'\N{SNOWMAN}', 'utf-16'),
-            Equals('\xff\xfe\x03&'))
+            _format_value(u('\N{SNOWMAN}')),
+            Equals(u('\N{SNOWMAN}')))
 
     def test_str(self):
         """
         Assume that ``str`` values are UTF-8.
         """
         self.assertThat(
-            _format_value('foo', 'utf-8'),
+            _format_value(b'foo'),
             Equals('foo'))
         self.assertThat(
-            _format_value('\xe2\x98\x83', 'utf-8'),
-            Equals('\xe2\x98\x83'))
-        self.assertThat(
-            _format_value('\xff\xfe\x03&', 'utf-8'),
-            Equals('\xef\xbf\xbd\xef\xbf\xbd\x03&'))
+            _format_value(b'\xe2\x98\x83'),
+            Equals(u('\N{SNOWMAN}')))
 
     def test_other(self):
         """
-        Pass unknown values to ``repr`` and encode as ``utf-8`` while replacing
-        encoding errors.
+        Pass unknown values to ``repr`` while replacing encoding errors.
         """
         self.assertThat(
-            _format_value(42, 'utf-8'),
+            _format_value(42),
             Equals('42'))
-        self.assertThat(
-            _format_value({u'a': u'\N{SNOWMAN}'}, 'utf-8'),
-            Equals("{u'a': u'\\u2603'}"))
-        self.assertThat(
-            _format_value({u'a': u'\N{SNOWMAN}'}, 'utf-16'),
-            Equals("\xff\xfe{\x00u\x00'\x00a\x00'\x00:\x00 \x00u\x00'"
-                   "\x00\\\x00u\x002\x006\x000\x003\x00'\x00}\x00"))
+        if PY3:
+            self.assertThat(
+                _format_value({'a': u('\N{SNOWMAN}')}),
+                Equals("{'a': '\N{SNOWMAN}'}"))
+        else:
+            self.assertThat(
+                _format_value({'a': u('\N{SNOWMAN}')}),
+                Equals("{'a': u'\\u2603'}"))
 
 
 class RenderTaskNodesTests(TestCase):
