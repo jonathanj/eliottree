@@ -29,7 +29,6 @@ setup(
     install_requires=[
         "six>=1.9.0",
         "jmespath>=0.7.1",
-        "toolz>=0.7.2",
     ],
     extras_require={
         "dev": ["pytest>=2.7.1", "testtools>=1.8.0"],
