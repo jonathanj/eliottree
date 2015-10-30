@@ -13,7 +13,8 @@ from eliottree import (
     filter_by_uuid, render_task_nodes)
 
 
-def build_task_nodes(files=None, select=None, task_uuid=None, start=None, end=None):
+def build_task_nodes(files=None, select=None, task_uuid=None, start=None,
+                     end=None):
     """
     Build the task nodes given some input data, query criteria and formatting
     options.
