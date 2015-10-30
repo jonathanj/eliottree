@@ -15,14 +15,14 @@ class FormatValueTests(TestCase):
     """
     Tests for ``eliottree.render._format_value``.
     """
-    def test_datetime(self):
+    def test_datetime_human_readable(self):
         """
         Format ``datetime`` values as ISO8601.
         """
         now = datetime(2015, 6, 6, 22, 57, 12)
         self.assertThat(
-            _format_value(now),
-            Equals('2015-06-06 22:57:12'))
+            _format_value(now, human_readable=True),
+            Equals(u'2015-06-06 22:57:12'))
 
     def test_unicode(self):
         """
@@ -59,6 +59,16 @@ class FormatValueTests(TestCase):
                 _format_value({'a': u('\N{SNOWMAN}')}),
                 Equals("{'a': u'\\u2603'}"))
 
+    def test_timestamp_hint(self):
+        """
+        Format "timestamp" hinted data as timestamps.
+        """
+        # datetime(2015, 6, 6, 22, 57, 12)
+        now = 1433631432
+        self.assertThat(
+            _format_value(now, field_hint='timestamp', human_readable=True),
+            Equals(u'2015-06-06 22:57:12'))
+
 
 class RenderTaskNodesTests(TestCase):
     """
@@ -84,6 +94,28 @@ class RenderTaskNodesTests(TestCase):
                 '    `-- timestamp: 1425356800\n'
                 '    +-- app:action@2/succeeded\n'
                 '        `-- timestamp: 1425356800\n\n'))
+
+    def test_tasks_human_readable(self):
+        """
+        Render two tasks of sequential levels, by default most standard Eliot
+        task keys are ignored, values are formatted to be human readable.
+        """
+        fd = StringIO()
+        tree = Tree()
+        tree.merge_tasks([action_task, action_task_end])
+        render_task_nodes(
+            write=fd.write,
+            nodes=tree.nodes(),
+            field_limit=0,
+            human_readable=True)
+        self.assertThat(
+            fd.getvalue(),
+            Equals(
+                'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                '+-- app:action@1/started\n'
+                '    `-- timestamp: 2015-03-03 04:26:40\n'
+                '    +-- app:action@2/succeeded\n'
+                '        `-- timestamp: 2015-03-03 04:26:40\n\n'))
 
     def test_multiline_field(self):
         """
