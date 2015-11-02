@@ -1,10 +1,12 @@
+from datetime import datetime
+
 import jmespath
+from iso8601.iso8601 import Utc
 
 
 def filter_by_jmespath(query):
     """
-    A factory function producing a filter function for filtering a task by
-    a jmespath query expression.
+    Produce a function for filtering a task by a jmespath query expression.
     """
     def _filter(task):
         return bool(expn.search(task))
@@ -14,10 +16,39 @@ def filter_by_jmespath(query):
 
 def filter_by_uuid(task_uuid):
     """
-    A factory function producing a filter function for filtering tasks by their
-    UUID.
+    Produce a function for filtering tasks by their UUID.
     """
     return filter_by_jmespath('task_uuid == `{}`'.format(task_uuid))
 
 
-__all__ = ['filter_by_jmespath', 'filter_by_uuid']
+def _parse_timestamp(timestamp):
+    """
+    Parse a timestamp into a UTC L{datetime}.
+    """
+    return datetime.utcfromtimestamp(timestamp).replace(tzinfo=Utc())
+
+
+def filter_by_start_date(start_date):
+    """
+    Produce a function for filtering by task timestamps after (or on) a certain
+    date and time.
+    """
+    def _filter(task):
+        return _parse_timestamp(task['timestamp']) >= start_date
+    return _filter
+
+
+def filter_by_end_date(end_date):
+    """
+    Produce a function for filtering by task timestamps before a certain date
+    and time.
+    """
+    def _filter(task):
+        return _parse_timestamp(task['timestamp']) < end_date
+    return _filter
+
+
+__all__ = [
+    'filter_by_jmespath', 'filter_by_uuid', 'filter_by_start_date',
+    'filter_by_end_date',
+]

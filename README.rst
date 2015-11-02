@@ -85,6 +85,10 @@ Usage
                            query, can be specified multiple times to mimic
                            logical AND. If any child task is selected the entire
                            top-level task is selected. See <http://jmespath.org/>
+     --start START         Select tasks whose timestamp occurs after (or on) an
+                           ISO8601 date.
+     --end END             Select tasks whose timestamp occurs before an ISO8601
+                           date.
 
 Contribute
 ----------
