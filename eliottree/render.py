@@ -47,7 +47,6 @@ def _format_value(value, field_hint=None, human_readable=False):
     """
     if isinstance(value, binary_type):
         # We guess bytes values are UTF-8.
-        print 'hello'
         value = value.decode('utf-8', 'replace')
 
     if isinstance(value, text_type):
