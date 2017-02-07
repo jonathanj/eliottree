@@ -29,15 +29,30 @@ def _format_value_hint(value, hint):
     return None
 
 
+controlEquivalents = dict((i, unichr(0x2400 + i)) for i in xrange(0x20))
+controlEquivalents[0x0a] = u'\n'
+controlEquivalents[0x7f] = u'\u2421'
+
+
+def _escape_control_characters(s):
+    """
+    Escape terminal control characters.
+    """
+    return unicode(s).translate(controlEquivalents)
+
+
 def _format_value(value, field_hint=None, human_readable=False):
     """
     Format a value for a task tree.
     """
-    if isinstance(value, text_type):
-        return value
-    elif isinstance(value, binary_type):
+    if isinstance(value, binary_type):
         # We guess bytes values are UTF-8.
-        return value.decode('utf-8', 'replace')
+        print 'hello'
+        value = value.decode('utf-8', 'replace')
+
+    if isinstance(value, text_type):
+        return _escape_control_characters(value)
+
     if human_readable:
         formatted = _format_value_raw(value)
         if formatted is None:

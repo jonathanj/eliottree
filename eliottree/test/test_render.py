@@ -32,9 +32,18 @@ class FormatValueTests(TestCase):
             _format_value(u('\N{SNOWMAN}')),
             Equals(u('\N{SNOWMAN}')))
 
-    def test_str(self):
+    def test_unicode_control_characters(self):
         """
-        Assume that ``str`` values are UTF-8.
+        Translate control characters to their Unicode "control picture"
+        equivalent, instead of destroying a terminal.
+        """
+        self.assertThat(
+            _format_value(u('hello\001world')),
+            Equals(u('hello\u2401world')))
+
+    def test_bytes(self):
+        """
+        Assume that ``bytes`` values are UTF-8.
         """
         self.assertThat(
             _format_value(b'foo'),
