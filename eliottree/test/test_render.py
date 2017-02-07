@@ -1,14 +1,20 @@
 from datetime import datetime
 
-from six import PY3, StringIO, u
+from six import PY3, StringIO
 from testtools import TestCase
-from testtools.matchers import Equals
+from testtools.matchers import Equals, IsInstance, MatchesAll
 
 from eliottree import Tree, render_task_nodes
 from eliottree.render import _format_value
 from eliottree.test.tasks import (
     action_task, action_task_end, dict_action_task, message_task,
     multiline_action_task, nested_action_task)
+
+
+ExactlyEquals = lambda value: MatchesAll(
+    IsInstance(type(value)),
+    Equals(value),
+    first_only=True)
 
 
 class FormatValueTests(TestCase):
@@ -22,15 +28,15 @@ class FormatValueTests(TestCase):
         now = datetime(2015, 6, 6, 22, 57, 12)
         self.assertThat(
             _format_value(now, human_readable=True),
-            Equals(u'2015-06-06 22:57:12'))
+            ExactlyEquals(u'2015-06-06 22:57:12'))
 
     def test_unicode(self):
         """
         Encode ``unicode`` values as the specified encoding.
         """
         self.assertThat(
-            _format_value(u('\N{SNOWMAN}')),
-            Equals(u('\N{SNOWMAN}')))
+            _format_value(u'\N{SNOWMAN}'),
+            ExactlyEquals(u'\N{SNOWMAN}'))
 
     def test_unicode_control_characters(self):
         """
@@ -38,8 +44,8 @@ class FormatValueTests(TestCase):
         equivalent, instead of destroying a terminal.
         """
         self.assertThat(
-            _format_value(u('hello\001world')),
-            Equals(u('hello\u2401world')))
+            _format_value(u'hello\001world'),
+            ExactlyEquals(u'hello\u2401world'))
 
     def test_bytes(self):
         """
@@ -47,10 +53,10 @@ class FormatValueTests(TestCase):
         """
         self.assertThat(
             _format_value(b'foo'),
-            Equals('foo'))
+            ExactlyEquals(u'foo'))
         self.assertThat(
             _format_value(b'\xe2\x98\x83'),
-            Equals(u('\N{SNOWMAN}')))
+            ExactlyEquals(u'\N{SNOWMAN}'))
 
     def test_other(self):
         """
@@ -58,15 +64,15 @@ class FormatValueTests(TestCase):
         """
         self.assertThat(
             _format_value(42),
-            Equals('42'))
+            ExactlyEquals(u'42'))
         if PY3:
             self.assertThat(
-                _format_value({'a': u('\N{SNOWMAN}')}),
-                Equals("{'a': '\N{SNOWMAN}'}"))
+                _format_value({'a': u'\N{SNOWMAN}'}),
+                ExactlyEquals(u"{'a': '\N{SNOWMAN}'}"))
         else:
             self.assertThat(
-                _format_value({'a': u('\N{SNOWMAN}')}),
-                Equals("{'a': u'\\u2603'}"))
+                _format_value({'a': u'\N{SNOWMAN}'}),
+                ExactlyEquals(u"{'a': u'\\u2603'}"))
 
     def test_timestamp_hint(self):
         """
@@ -76,7 +82,7 @@ class FormatValueTests(TestCase):
         now = 1433631432
         self.assertThat(
             _format_value(now, field_hint='timestamp', human_readable=True),
-            Equals(u'2015-06-06 22:57:12'))
+            ExactlyEquals(u'2015-06-06 22:57:12'))
 
 
 class RenderTaskNodesTests(TestCase):
@@ -97,12 +103,12 @@ class RenderTaskNodesTests(TestCase):
             field_limit=0)
         self.assertThat(
             fd.getvalue(),
-            Equals(
-                'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                '+-- app:action@1/started\n'
-                '    `-- timestamp: 1425356800\n'
-                '    +-- app:action@2/succeeded\n'
-                '        `-- timestamp: 1425356800\n\n'))
+            ExactlyEquals(
+                u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                u'+-- app:action@1/started\n'
+                u'    `-- timestamp: 1425356800\n'
+                u'    +-- app:action@2/succeeded\n'
+                u'        `-- timestamp: 1425356800\n\n'))
 
     def test_tasks_human_readable(self):
         """
@@ -119,12 +125,12 @@ class RenderTaskNodesTests(TestCase):
             human_readable=True)
         self.assertThat(
             fd.getvalue(),
-            Equals(
-                'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                '+-- app:action@1/started\n'
-                '    `-- timestamp: 2015-03-03 04:26:40\n'
-                '    +-- app:action@2/succeeded\n'
-                '        `-- timestamp: 2015-03-03 04:26:40\n\n'))
+            ExactlyEquals(
+                u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                u'+-- app:action@1/started\n'
+                u'    `-- timestamp: 2015-03-03 04:26:40\n'
+                u'    +-- app:action@2/succeeded\n'
+                u'        `-- timestamp: 2015-03-03 04:26:40\n\n'))
 
     def test_multiline_field(self):
         """
@@ -140,12 +146,12 @@ class RenderTaskNodesTests(TestCase):
             field_limit=0)
         self.assertThat(
             fd.getvalue(),
-            Equals(
-                'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                '+-- app:action@1/started\n'
-                '    |-- message: this is a\n'
-                '        many line message\n'
-                '    `-- timestamp: 1425356800\n\n'))
+            ExactlyEquals(
+                u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                u'+-- app:action@1/started\n'
+                u'    |-- message: this is a\n'
+                u'        many line message\n'
+                u'    `-- timestamp: 1425356800\n\n'))
 
     def test_multiline_field_limit(self):
         """
@@ -161,11 +167,11 @@ class RenderTaskNodesTests(TestCase):
             field_limit=1000)
         self.assertThat(
             fd.getvalue(),
-            Equals(
-                'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                '+-- app:action@1/started\n'
-                '    |-- message: this is a [...]\n'
-                '    `-- timestamp: 1425356800\n\n'))
+            ExactlyEquals(
+                u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                u'+-- app:action@1/started\n'
+                u'    |-- message: this is a [...]\n'
+                u'    `-- timestamp: 1425356800\n\n'))
 
     def test_field_limit(self):
         """
@@ -180,12 +186,12 @@ class RenderTaskNodesTests(TestCase):
             field_limit=5)
         self.assertThat(
             fd.getvalue(),
-            Equals(
-                'cdeb220d-7605-4d5f-8341-1a170222e308\n'
-                '+-- twisted:log@1\n'
-                '    |-- error: False\n'
-                '    |-- message: Main  [...]\n'
-                '    `-- timestamp: 14253 [...]\n\n'))
+            ExactlyEquals(
+                u'cdeb220d-7605-4d5f-8341-1a170222e308\n'
+                u'+-- twisted:log@1\n'
+                u'    |-- error: False\n'
+                u'    |-- message: Main  [...]\n'
+                u'    `-- timestamp: 14253 [...]\n\n'))
 
     def test_ignored_keys(self):
         """
@@ -201,13 +207,13 @@ class RenderTaskNodesTests(TestCase):
             ignored_task_keys=set(['task_level']))
         self.assertThat(
             fd.getvalue(),
-            Equals(
-                'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                '+-- app:action@1/started\n'
-                '    |-- action_status: started\n'
-                '    |-- action_type: app:action\n'
-                '    |-- task_uuid: f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                '    `-- timestamp: 1425356800\n\n'))
+            ExactlyEquals(
+                u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                u'+-- app:action@1/started\n'
+                u'    |-- action_status: started\n'
+                u'    |-- action_type: app:action\n'
+                u'    |-- task_uuid: f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                u'    `-- timestamp: 1425356800\n\n'))
 
     def test_task_data(self):
         """
@@ -222,12 +228,12 @@ class RenderTaskNodesTests(TestCase):
             field_limit=0)
         self.assertThat(
             fd.getvalue(),
-            Equals(
-                'cdeb220d-7605-4d5f-8341-1a170222e308\n'
-                '+-- twisted:log@1\n'
-                '    |-- error: False\n'
-                '    |-- message: Main loop terminated.\n'
-                '    `-- timestamp: 1425356700\n\n'))
+            ExactlyEquals(
+                u'cdeb220d-7605-4d5f-8341-1a170222e308\n'
+                u'+-- twisted:log@1\n'
+                u'    |-- error: False\n'
+                u'    |-- message: Main loop terminated.\n'
+                u'    `-- timestamp: 1425356700\n\n'))
 
     def test_dict_data(self):
         """
@@ -242,12 +248,12 @@ class RenderTaskNodesTests(TestCase):
             field_limit=0)
         self.assertThat(
             fd.getvalue(),
-            Equals(
-                'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                '+-- app:action@1/started\n'
-                '    |-- some_data:\n'
-                '        `-- a: 42\n'
-                '    `-- timestamp: 1425356800\n\n'))
+            ExactlyEquals(
+                u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                u'+-- app:action@1/started\n'
+                u'    |-- some_data:\n'
+                u'        `-- a: 42\n'
+                u'    `-- timestamp: 1425356800\n\n'))
 
     def test_nested(self):
         """
@@ -259,9 +265,9 @@ class RenderTaskNodesTests(TestCase):
         render_task_nodes(fd.write, tree.nodes(), 0)
         self.assertThat(
             fd.getvalue(),
-            Equals(
-                'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                '+-- app:action@1/started\n'
-                '    `-- timestamp: 1425356800\n'
-                '    +-- app:action:nested@1,1/started\n'
-                '        `-- timestamp: 1425356900\n\n'))
+            ExactlyEquals(
+                u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                u'+-- app:action@1/started\n'
+                u'    `-- timestamp: 1425356800\n'
+                u'    +-- app:action:nested@1,1/started\n'
+                u'        `-- timestamp: 1425356900\n\n'))
