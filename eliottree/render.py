@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from six import PY3, binary_type, text_type
+from six import PY3, binary_type, text_type, unichr
 
 
 DEFAULT_IGNORED_KEYS = set([
@@ -29,7 +29,7 @@ def _format_value_hint(value, hint):
     return None
 
 
-controlEquivalents = dict((i, unichr(0x2400 + i)) for i in xrange(0x20))
+controlEquivalents = dict((i, unichr(0x2400 + i)) for i in range(0x20))
 controlEquivalents[0x0a] = u'\n'
 controlEquivalents[0x7f] = u'\u2421'
 
@@ -38,7 +38,7 @@ def _escape_control_characters(s):
     """
     Escape terminal control characters.
     """
-    return unicode(s).translate(controlEquivalents)
+    return text_type(s).translate(controlEquivalents)
 
 
 def _format_value(value, field_hint=None, human_readable=False):
@@ -88,7 +88,7 @@ def _render_task(write, task, ignored_task_keys, field_limit, human_readable):
     """
     Render a single ``_TaskNode`` as an ``ASCII`` tree.
 
-    :type write: ``callable`` taking a single ``unicode`` argument
+    :type write: ``callable`` taking a single ``text_type`` argument
     :param write: Callable to write the output.
 
     :type task: ``dict`` of ``text_type``:``Any``
@@ -128,7 +128,7 @@ def _render_task(write, task, ignored_task_keys, field_limit, human_readable):
                 else:
                     lines = _value.splitlines() or [u'']
                     first_line = lines.pop(0)
-                assert isinstance(first_line, unicode)
+                assert isinstance(first_line, text_type)
                 write(
                     u'{tree_char}-- {key}: {value}\n'.format(
                         tree_char=tree_char,
@@ -144,7 +144,7 @@ def _render_task_node(write, node, field_limit, ignored_task_keys,
     """
     Render a single ``_TaskNode`` as an ``ASCII`` tree.
 
-    :type write: ``callable`` taking a single ``unicode`` argument
+    :type write: ``callable`` taking a single ``text_type`` argument
     :param write: Callable to write the output.
 
     :type node: ``_TaskNode)``
@@ -183,7 +183,7 @@ def render_task_nodes(write, nodes, field_limit, ignored_task_keys=None,
     """
     Render a tree of task nodes as an ``ASCII`` tree.
 
-    :type write: ``callable`` taking a single ``unicode`` argument
+    :type write: ``callable`` taking a single ``text_type`` argument
     :param write: Callable to write the output.
 
     :type nodes: ``list`` of ``(text_type, _TaskNode)``.
