@@ -12,10 +12,14 @@ from eliottree.test.tasks import (
     nested_action_task)
 
 
-ExactlyEquals = lambda value: MatchesAll(
-    IsInstance(type(value)),
-    Equals(value),
-    first_only=True)
+def ExactlyEquals(value):
+    """
+    Like `Equals` but also requires that the types match.
+    """
+    return MatchesAll(
+        IsInstance(type(value)),
+        Equals(value),
+        first_only=True)
 
 
 class FormatValueTests(TestCase):
