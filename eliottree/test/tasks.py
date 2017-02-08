@@ -50,3 +50,21 @@ multiline_action_task = {
     u"action_type": u"app:action",
     u"task_level": [1],
     u"message": u"this is a\nmany line message"}
+
+janky_action_task = {
+    u"timestamp": '1425356800\x1b(0',
+    u"action_status": u"started\x1b(0",
+    u"task_uuid": u"f3a32bb3-ea6b-457c-\x1b(0aa99-08a3d0491ab4",
+    u"action_type": u"A\x1b(0",
+    u"task_level": [1],
+    u"message": u"hello\x1b(0world",
+    u"\x1b(0": "nope",
+    u"\x1b(0": {u"\x1b(0": "nope"}}
+
+janky_message_task = {
+    u"task_uuid": u"cdeb220d-7605-4d5f-\x1b(08341-1a170222e308",
+    u"error": False,
+    u"timestamp": 1425356700,
+    u"message": u"Main loop\x1b(0terminated.",
+    u"message_type": u"M\x1b(0",
+    u"task_level": [1]}
