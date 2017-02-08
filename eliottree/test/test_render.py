@@ -7,8 +7,9 @@ from testtools.matchers import Equals, IsInstance, MatchesAll
 from eliottree import Tree, render_task_nodes
 from eliottree.render import _format_value
 from eliottree.test.tasks import (
-    action_task, action_task_end, dict_action_task, message_task,
-    multiline_action_task, nested_action_task)
+    action_task, action_task_end, dict_action_task, janky_action_task,
+    janky_message_task, message_task, multiline_action_task,
+    nested_action_task)
 
 
 ExactlyEquals = lambda value: MatchesAll(
@@ -271,3 +272,46 @@ class RenderTaskNodesTests(TestCase):
                 u'    `-- timestamp: 1425356800\n'
                 u'    +-- app:action:nested@1,1/started\n'
                 u'        `-- timestamp: 1425356900\n\n'))
+
+    def test_janky_message(self):
+        """
+        Task names, UUIDs, keys and values in messages all have control
+        characters escaped.
+        """
+        fd = StringIO()
+        tree = Tree()
+        tree.merge_tasks([janky_message_task])
+        render_task_nodes(
+            write=fd.write,
+            nodes=tree.nodes(),
+            field_limit=0)
+        self.assertThat(
+            fd.getvalue(),
+            ExactlyEquals(
+                u'cdeb220d-7605-4d5f-\u241b(08341-1a170222e308\n'
+                u'+-- M\u241b(0@1\n'
+                u'    |-- error: False\n'
+                u'    |-- message: Main loop\u241b(0terminated.\n'
+                u'    `-- timestamp: 1425356700\n\n'))
+
+    def test_janky_action(self):
+        """
+        Task names, UUIDs, keys and values in actions all have control
+        characters escaped.
+        """
+        fd = StringIO()
+        tree = Tree()
+        tree.merge_tasks([janky_action_task])
+        render_task_nodes(
+            write=fd.write,
+            nodes=tree.nodes(),
+            field_limit=0)
+        self.assertThat(
+            fd.getvalue(),
+            ExactlyEquals(
+                u'f3a32bb3-ea6b-457c-\u241b(0aa99-08a3d0491ab4\n'
+                u'+-- A\u241b(0@1/started\u241b(0\n'
+                u'    |-- \u241b(0:\n'
+                u'        `-- \u241b(0: nope\n'
+                u'    |-- message: hello\u241b(0world\n'
+                u'    `-- timestamp: 1425356800\u241b(0\n\n'))

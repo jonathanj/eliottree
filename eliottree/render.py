@@ -113,7 +113,7 @@ def _render_task(write, task, ignored_task_keys, field_limit, human_readable):
                 write(
                     u'{tree_char}-- {key}:\n'.format(
                         tree_char=tree_char,
-                        key=key))
+                        key=_escape_control_characters(key)))
                 _render_task(write=_write,
                              task=value,
                              ignored_task_keys={},
@@ -132,7 +132,7 @@ def _render_task(write, task, ignored_task_keys, field_limit, human_readable):
                 write(
                     u'{tree_char}-- {key}: {value}\n'.format(
                         tree_char=tree_char,
-                        key=key,
+                        key=_escape_control_characters(key),
                         value=first_line))
                 if not field_limit:
                     for line in lines:
@@ -161,7 +161,7 @@ def _render_task_node(write, node, field_limit, ignored_task_keys,
     :param human_readable: Should this be rendered as human-readable?
     """
     _child_write = _indented_write(write)
-    write(u'+-- {name}\n'.format(name=node.name))
+    write(u'+-- {name}\n'.format(name=_escape_control_characters(node.name)))
     _render_task(
         write=_child_write,
         task=node.task,
@@ -203,7 +203,8 @@ def render_task_nodes(write, nodes, field_limit, ignored_task_keys=None,
     if ignored_task_keys is None:
         ignored_task_keys = DEFAULT_IGNORED_KEYS
     for task_uuid, node in nodes:
-        write(u'{name}\n'.format(name=node.task['task_uuid']))
+        write(u'{name}\n'.format(
+            name=_escape_control_characters(node.task['task_uuid'])))
         _render_task_node(
             write=write,
             node=node,
