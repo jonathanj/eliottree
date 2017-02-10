@@ -178,8 +178,8 @@ def _render_task_node(write, node, field_limit, ignored_task_keys,
             human_readable=human_readable)
 
 
-def render_task_nodes(write, nodes, field_limit, ignored_task_keys=None,
-                      human_readable=False):
+def render_task_nodes_unicode(write, nodes, field_limit,
+                              ignored_task_keys=None, human_readable=False):
     """
     Render a tree of task nodes as an ``ASCII`` tree.
 
@@ -214,4 +214,22 @@ def render_task_nodes(write, nodes, field_limit, ignored_task_keys=None,
         write(u'\n')
 
 
-__all__ = ['render_task_nodes']
+def render_task_nodes(write, nodes, field_limit,
+                      ignored_task_keys=None, human_readable=False,
+                      encoding='utf-8'):
+    """
+    :type write: ``callable`` taking a single ``bytes_type`` argument
+    :param write: Callable to write the output.
+
+    :param str encoding: Encoding for data to be written to ``write``.
+
+    :seealso: `render_task_nodes`
+    """
+    render_task_nodes_unicode(
+        write=lambda value: write(value.encode(encoding)),
+        nodes=nodes,
+        field_limit=field_limit,
+        ignored_task_keys=ignored_task_keys,
+        human_readable=human_readable)
+
+__all__ = ['render_task_nodes', 'render_task_nodes_unicode']

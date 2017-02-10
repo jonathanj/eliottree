@@ -10,7 +10,7 @@ from six.moves import map
 
 from eliottree import (
     Tree, filter_by_end_date, filter_by_jmespath, filter_by_start_date,
-    filter_by_uuid, render_task_nodes)
+    filter_by_uuid, render_task_nodes_unicode)
 
 
 def build_task_nodes(files=None, select=None, task_uuid=None, start=None,
@@ -59,7 +59,7 @@ def display_task_tree(args):
         task_uuid=args.task_uuid,
         start=args.start,
         end=args.end)
-    render_task_nodes(
+    render_task_nodes_unicode(
         write=write,
         nodes=nodes,
         ignored_task_keys=set(args.ignored_task_keys) or None,

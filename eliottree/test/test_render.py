@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from six import PY3, StringIO
+from six import PY3, BytesIO
 from testtools import TestCase
 from testtools.matchers import Equals, IsInstance, MatchesAll
 
@@ -99,7 +99,7 @@ class RenderTaskNodesTests(TestCase):
         Render two tasks of sequential levels, by default most standard Eliot
         task keys are ignored.
         """
-        fd = StringIO()
+        fd = BytesIO()
         tree = Tree()
         tree.merge_tasks([action_task, action_task_end])
         render_task_nodes(
@@ -109,18 +109,18 @@ class RenderTaskNodesTests(TestCase):
         self.assertThat(
             fd.getvalue(),
             ExactlyEquals(
-                u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'+-- app:action@1/started\n'
-                u'    `-- timestamp: 1425356800\n'
-                u'    +-- app:action@2/succeeded\n'
-                u'        `-- timestamp: 1425356800\n\n'))
+                b'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                b'+-- app:action@1/started\n'
+                b'    `-- timestamp: 1425356800\n'
+                b'    +-- app:action@2/succeeded\n'
+                b'        `-- timestamp: 1425356800\n\n'))
 
     def test_tasks_human_readable(self):
         """
         Render two tasks of sequential levels, by default most standard Eliot
         task keys are ignored, values are formatted to be human readable.
         """
-        fd = StringIO()
+        fd = BytesIO()
         tree = Tree()
         tree.merge_tasks([action_task, action_task_end])
         render_task_nodes(
@@ -131,18 +131,18 @@ class RenderTaskNodesTests(TestCase):
         self.assertThat(
             fd.getvalue(),
             ExactlyEquals(
-                u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'+-- app:action@1/started\n'
-                u'    `-- timestamp: 2015-03-03 04:26:40\n'
-                u'    +-- app:action@2/succeeded\n'
-                u'        `-- timestamp: 2015-03-03 04:26:40\n\n'))
+                b'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                b'+-- app:action@1/started\n'
+                b'    `-- timestamp: 2015-03-03 04:26:40\n'
+                b'    +-- app:action@2/succeeded\n'
+                b'        `-- timestamp: 2015-03-03 04:26:40\n\n'))
 
     def test_multiline_field(self):
         """
         When no field limit is specified for task values, multiple lines are
         output for multiline tasks.
         """
-        fd = StringIO()
+        fd = BytesIO()
         tree = Tree()
         tree.merge_tasks([multiline_action_task])
         render_task_nodes(
@@ -152,18 +152,18 @@ class RenderTaskNodesTests(TestCase):
         self.assertThat(
             fd.getvalue(),
             ExactlyEquals(
-                u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'+-- app:action@1/started\n'
-                u'    |-- message: this is a\n'
-                u'        many line message\n'
-                u'    `-- timestamp: 1425356800\n\n'))
+                b'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                b'+-- app:action@1/started\n'
+                b'    |-- message: this is a\n'
+                b'        many line message\n'
+                b'    `-- timestamp: 1425356800\n\n'))
 
     def test_multiline_field_limit(self):
         """
         When a field limit is specified for task values, only the first of
         multiple lines is output.
         """
-        fd = StringIO()
+        fd = BytesIO()
         tree = Tree()
         tree.merge_tasks([multiline_action_task])
         render_task_nodes(
@@ -173,16 +173,16 @@ class RenderTaskNodesTests(TestCase):
         self.assertThat(
             fd.getvalue(),
             ExactlyEquals(
-                u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'+-- app:action@1/started\n'
-                u'    |-- message: this is a [...]\n'
-                u'    `-- timestamp: 1425356800\n\n'))
+                b'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                b'+-- app:action@1/started\n'
+                b'    |-- message: this is a [...]\n'
+                b'    `-- timestamp: 1425356800\n\n'))
 
     def test_field_limit(self):
         """
         Truncate task values that are longer than the field_limit if specified.
         """
-        fd = StringIO()
+        fd = BytesIO()
         tree = Tree()
         tree.merge_tasks([message_task])
         render_task_nodes(
@@ -192,17 +192,17 @@ class RenderTaskNodesTests(TestCase):
         self.assertThat(
             fd.getvalue(),
             ExactlyEquals(
-                u'cdeb220d-7605-4d5f-8341-1a170222e308\n'
-                u'+-- twisted:log@1\n'
-                u'    |-- error: False\n'
-                u'    |-- message: Main  [...]\n'
-                u'    `-- timestamp: 14253 [...]\n\n'))
+                b'cdeb220d-7605-4d5f-8341-1a170222e308\n'
+                b'+-- twisted:log@1\n'
+                b'    |-- error: False\n'
+                b'    |-- message: Main  [...]\n'
+                b'    `-- timestamp: 14253 [...]\n\n'))
 
     def test_ignored_keys(self):
         """
         Task keys can be ignored.
         """
-        fd = StringIO()
+        fd = BytesIO()
         tree = Tree()
         tree.merge_tasks([action_task])
         render_task_nodes(
@@ -213,18 +213,18 @@ class RenderTaskNodesTests(TestCase):
         self.assertThat(
             fd.getvalue(),
             ExactlyEquals(
-                u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'+-- app:action@1/started\n'
-                u'    |-- action_status: started\n'
-                u'    |-- action_type: app:action\n'
-                u'    |-- task_uuid: f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'    `-- timestamp: 1425356800\n\n'))
+                b'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                b'+-- app:action@1/started\n'
+                b'    |-- action_status: started\n'
+                b'    |-- action_type: app:action\n'
+                b'    |-- task_uuid: f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                b'    `-- timestamp: 1425356800\n\n'))
 
     def test_task_data(self):
         """
         Task data is rendered as tree elements.
         """
-        fd = StringIO()
+        fd = BytesIO()
         tree = Tree()
         tree.merge_tasks([message_task])
         render_task_nodes(
@@ -234,17 +234,17 @@ class RenderTaskNodesTests(TestCase):
         self.assertThat(
             fd.getvalue(),
             ExactlyEquals(
-                u'cdeb220d-7605-4d5f-8341-1a170222e308\n'
-                u'+-- twisted:log@1\n'
-                u'    |-- error: False\n'
-                u'    |-- message: Main loop terminated.\n'
-                u'    `-- timestamp: 1425356700\n\n'))
+                b'cdeb220d-7605-4d5f-8341-1a170222e308\n'
+                b'+-- twisted:log@1\n'
+                b'    |-- error: False\n'
+                b'    |-- message: Main loop terminated.\n'
+                b'    `-- timestamp: 1425356700\n\n'))
 
     def test_dict_data(self):
         """
         Task values that are ``dict``s are rendered as tree elements.
         """
-        fd = StringIO()
+        fd = BytesIO()
         tree = Tree()
         tree.merge_tasks([dict_action_task])
         render_task_nodes(
@@ -254,35 +254,35 @@ class RenderTaskNodesTests(TestCase):
         self.assertThat(
             fd.getvalue(),
             ExactlyEquals(
-                u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'+-- app:action@1/started\n'
-                u'    |-- some_data:\n'
-                u'        `-- a: 42\n'
-                u'    `-- timestamp: 1425356800\n\n'))
+                b'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                b'+-- app:action@1/started\n'
+                b'    |-- some_data:\n'
+                b'        `-- a: 42\n'
+                b'    `-- timestamp: 1425356800\n\n'))
 
     def test_nested(self):
         """
         Render nested tasks in a way that visually represents that nesting.
         """
-        fd = StringIO()
+        fd = BytesIO()
         tree = Tree()
         tree.merge_tasks([action_task, nested_action_task])
         render_task_nodes(fd.write, tree.nodes(), 0)
         self.assertThat(
             fd.getvalue(),
             ExactlyEquals(
-                u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'+-- app:action@1/started\n'
-                u'    `-- timestamp: 1425356800\n'
-                u'    +-- app:action:nested@1,1/started\n'
-                u'        `-- timestamp: 1425356900\n\n'))
+                b'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
+                b'+-- app:action@1/started\n'
+                b'    `-- timestamp: 1425356800\n'
+                b'    +-- app:action:nested@1,1/started\n'
+                b'        `-- timestamp: 1425356900\n\n'))
 
     def test_janky_message(self):
         """
         Task names, UUIDs, keys and values in messages all have control
         characters escaped.
         """
-        fd = StringIO()
+        fd = BytesIO()
         tree = Tree()
         tree.merge_tasks([janky_message_task])
         render_task_nodes(
@@ -292,18 +292,18 @@ class RenderTaskNodesTests(TestCase):
         self.assertThat(
             fd.getvalue(),
             ExactlyEquals(
-                u'cdeb220d-7605-4d5f-\u241b(08341-1a170222e308\n'
-                u'+-- M\u241b(0@1\n'
-                u'    |-- error: False\n'
-                u'    |-- message: Main loop\u241b(0terminated.\n'
-                u'    `-- timestamp: 1425356700\n\n'))
+                b'cdeb220d-7605-4d5f-\xe2\x90\x9b(08341-1a170222e308\n'
+                b'+-- M\xe2\x90\x9b(0@1\n'
+                b'    |-- error: False\n'
+                b'    |-- message: Main loop\xe2\x90\x9b(0terminated.\n'
+                b'    `-- timestamp: 1425356700\n\n'))
 
     def test_janky_action(self):
         """
         Task names, UUIDs, keys and values in actions all have control
         characters escaped.
         """
-        fd = StringIO()
+        fd = BytesIO()
         tree = Tree()
         tree.merge_tasks([janky_action_task])
         render_task_nodes(
@@ -313,9 +313,9 @@ class RenderTaskNodesTests(TestCase):
         self.assertThat(
             fd.getvalue(),
             ExactlyEquals(
-                u'f3a32bb3-ea6b-457c-\u241b(0aa99-08a3d0491ab4\n'
-                u'+-- A\u241b(0@1/started\u241b(0\n'
-                u'    |-- \u241b(0:\n'
-                u'        `-- \u241b(0: nope\n'
-                u'    |-- message: hello\u241b(0world\n'
-                u'    `-- timestamp: 1425356800\u241b(0\n\n'))
+                b'f3a32bb3-ea6b-457c-\xe2\x90\x9b(0aa99-08a3d0491ab4\n'
+                b'+-- A\xe2\x90\x9b(0@1/started\xe2\x90\x9b(0\n'
+                b'    |-- \xe2\x90\x9b(0:\n'
+                b'        `-- \xe2\x90\x9b(0: nope\n'
+                b'    |-- message: hello\xe2\x90\x9b(0world\n'
+                b'    `-- timestamp: 1425356800\xe2\x90\x9b(0\n\n'))
