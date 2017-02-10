@@ -232,4 +232,4 @@ def render_task_nodes(write, nodes, field_limit,
         ignored_task_keys=ignored_task_keys,
         human_readable=human_readable)
 
-__all__ = ['render_task_nodes']
+__all__ = ['render_task_nodes', 'render_task_nodes_unicode']
