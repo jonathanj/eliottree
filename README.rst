@@ -59,13 +59,15 @@ Usage
 
 .. code-block::
 
-   usage: eliot-tree [-h] [-u UUID] [-i KEY] [--raw] [-l LENGTH] [--select QUERY]
+   usage: eliot-tree [-h] [-u UUID] [-i KEY] [--raw]
+                     [--color {always,auto,never}] [--no-colorize] [-l LENGTH]
+                     [--select QUERY] [--start START] [--end END]
                      [FILE [FILE ...]]
 
    Display an Eliot log as a tree of tasks.
 
    positional arguments:
-     FILE                  Files to process
+     FILE                  Files to process. Omit to read from stdin.
 
    optional arguments:
      -h, --help            show this help message and exit
@@ -77,6 +79,9 @@ Usage
                            standard keys.
      --raw                 Do not format some task values (such as UTC
                            timestamps) as human-readable
+     --color {always,auto,never}
+                           Color the output. Defaults based on whether the output
+                           is a TTY.
      -l LENGTH, --field-limit LENGTH
                            Limit the length of field values to LENGTH or a
                            newline, whichever comes first. Use a length of 0 to
@@ -96,7 +101,7 @@ Contribute
 See <https://github.com/jonathanj/eliottree> for details.
 
 
-.. |build| image:: https://travis-ci.org/jonathanj/eliottree.svg?branch=16-refactor-into-library
+.. |build| image:: https://travis-ci.org/jonathanj/eliottree.svg?branch=master
 .. _build: https://travis-ci.org/jonathanj/eliottree
 
 .. |coverage| image:: https://coveralls.io/repos/jonathanj/eliottree/badge.svg

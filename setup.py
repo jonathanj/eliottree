@@ -30,6 +30,8 @@ setup(
         "six>=1.9.0",
         "jmespath>=0.7.1",
         "iso8601>=0.1.10",
+        "tree-format>=0.1.0",
+        "termcolor>=1.1.0",
     ],
     extras_require={
         "dev": ["pytest>=2.7.1", "testtools>=1.8.0"],

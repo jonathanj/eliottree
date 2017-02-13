@@ -51,6 +51,7 @@ class _TaskNode(object):
         if name is None:
             name = task_name(task) or self._DEFAULT_TASK_NAME
         self.name = name
+        self.success = None
 
     def __repr__(self):
         """
@@ -68,6 +69,12 @@ class _TaskNode(object):
             name=name,
             children=len(self._children))
 
+    def copy(self):
+        """
+        Make a shallow copy of this node.
+        """
+        return type(self)(self.task, self.name)
+
     def add_child(self, node):
         """
         Add a child node.
@@ -84,6 +91,11 @@ class _TaskNode(object):
                 _add_child(children[level], levels)
             else:
                 children[level] = node
+                action_status = node.task.get('action_status')
+                if action_status == u'succeeded':
+                    node.success = parent.success = True
+                elif action_status == u'failed':
+                    node.success = parent.success = False
         _add_child(self, node.task['task_level'])
 
     def children(self):
