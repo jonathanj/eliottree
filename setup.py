@@ -32,6 +32,7 @@ setup(
         "iso8601>=0.1.10",
         "tree-format>=0.1.0",
         "termcolor>=1.1.0",
+        "toolz>=0.8.2",
     ],
     extras_require={
         "dev": ["pytest>=2.7.1", "testtools>=1.8.0"],
