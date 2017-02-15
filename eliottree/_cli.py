@@ -53,6 +53,11 @@ def display_task_tree(args):
     else:
         write = codecs.getwriter('utf-8')(sys.stdout).write
 
+    if args.color == 'auto':
+        colorize = sys.stdout.isatty()
+    else:
+        colorize = args.color == 'always'
+
     nodes = build_task_nodes(
         files=args.files,
         select=args.select,
@@ -64,7 +69,8 @@ def display_task_tree(args):
         nodes=nodes,
         ignored_task_keys=set(args.ignored_task_keys) or None,
         field_limit=args.field_limit,
-        human_readable=args.human_readable)
+        human_readable=args.human_readable,
+        colorize=colorize)
 
 
 def main():
@@ -92,6 +98,12 @@ def main():
                         dest='human_readable',
                         help='''Do not format some task values (such as
                         UTC timestamps) as human-readable''')
+    parser.add_argument('--color',
+                        default='auto',
+                        choices=['always', 'auto', 'never'],
+                        dest='color',
+                        help='''Color the output. Defaults based on whether
+                        the output is a TTY.''')
     parser.add_argument('-l', '--field-limit',
                         metavar='LENGTH',
                         type=int,

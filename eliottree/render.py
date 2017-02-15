@@ -1,6 +1,11 @@
-from datetime import datetime
+from functools import partial, wraps
 
-from six import PY3, binary_type, text_type, unichr
+from six import text_type, unichr
+from termcolor import colored
+from toolz import compose, identity
+from tree_format import format_tree
+
+from eliottree import format
 
 
 DEFAULT_IGNORED_KEYS = set([
@@ -8,178 +13,62 @@ DEFAULT_IGNORED_KEYS = set([
     u'message_type'])
 
 
-def _format_value_raw(value):
-    """
-    Format a value.
-    """
-    if isinstance(value, datetime):
-        if PY3:
-            return value.isoformat(' ')
-        else:
-            return value.isoformat(' ').decode('ascii')
-    return None
-
-
-def _format_value_hint(value, hint):
-    """
-    Format a value given a rendering hint.
-    """
-    if hint == u'timestamp':
-        return _format_value_raw(datetime.utcfromtimestamp(value))
-    return None
-
-
-controlEquivalents = dict((i, unichr(0x2400 + i)) for i in range(0x20))
-controlEquivalents[0x0a] = u'\n'
-controlEquivalents[0x7f] = u'\u2421'
+_control_equivalents = dict((i, unichr(0x2400 + i)) for i in range(0x20))
+_control_equivalents[0x0a] = u'\n'
+_control_equivalents[0x7f] = u'\u2421'
 
 
 def _escape_control_characters(s):
     """
     Escape terminal control characters.
     """
-    return text_type(s).translate(controlEquivalents)
+    return text_type(s).translate(_control_equivalents)
 
 
-def _format_value(value, field_hint=None, human_readable=False):
+def _no_color(text, *a, **kw):
     """
-    Format a value for a task tree.
+    Colorizer that does not colorize.
     """
-    if isinstance(value, binary_type):
-        # We guess bytes values are UTF-8.
-        value = value.decode('utf-8', 'replace')
+    return text
 
-    if isinstance(value, text_type):
-        return _escape_control_characters(value)
 
+def some(*fs):
+    """
+    Create a function that returns the first non-``None`` result of applying
+    the arguments to each ``fs``.
+    """
+    def _some(*a, **kw):
+        for f in fs:
+            result = f(*a, **kw)
+            if result is not None:
+                return result
+        return None
+    return _some
+
+
+def _default_value_formatter(human_readable, field_limit, encoding='utf-8'):
+    """
+    Create a value formatter based on several user-specified options.
+    """
+    fields = {}
     if human_readable:
-        formatted = _format_value_raw(value)
-        if formatted is None:
-            formatted = _format_value_hint(value, field_hint)
-        if formatted is not None:
-            return formatted
-    result = repr(value)
-    if isinstance(result, binary_type):
-        result = result.decode('utf-8', 'replace')
-    return result
-
-
-def _indented_write(write):
-    """
-    Wrap ``write`` to instead write indented text.
-    """
-    def _write(data):
-        write(u'    ' + data)
-    return _write
-
-
-def _truncate_value(value, limit):
-    """
-    Truncate values longer than ``limit``.
-    """
-    values = value.split(u'\n')
-    value = values[0]
-    if len(value) > limit or len(values) > 1:
-        return u'{} [...]'.format(value[:limit])
-    return value
-
-
-def _render_task(write, task, ignored_task_keys, field_limit, human_readable):
-    """
-    Render a single ``_TaskNode`` as an ``ASCII`` tree.
-
-    :type write: ``callable`` taking a single ``text_type`` argument
-    :param write: Callable to write the output.
-
-    :type task: ``dict`` of ``text_type``:``Any``
-    :param task: Task ``dict`` to render.
-
-    :type field_limit: ``int``
-    :param field_limit: Length at which to begin truncating, ``0`` means no
-        truncation.
-
-    :type ignored_task_keys: ``set`` of ``text_type``
-    :param ignored_task_keys: Set of task key names to ignore.
-
-    :type human_readable: ``bool``
-    :param human_readable: Should this be rendered as human-readable?
-    """
-    _write = _indented_write(write)
-    num_items = len(task)
-    for i, (key, value) in enumerate(sorted(task.items()), 1):
-        if key not in ignored_task_keys:
-            tree_char = u'`' if i == num_items else u'|'
-            if isinstance(value, dict):
-                write(
-                    u'{tree_char}-- {key}:\n'.format(
-                        tree_char=tree_char,
-                        key=_escape_control_characters(key)))
-                _render_task(write=_write,
-                             task=value,
-                             ignored_task_keys={},
-                             field_limit=field_limit,
-                             human_readable=human_readable)
-            else:
-                _value = _format_value(value,
-                                       field_hint=key,
-                                       human_readable=human_readable)
-                if field_limit:
-                    first_line = _truncate_value(_value, field_limit)
-                else:
-                    lines = _value.splitlines() or [u'']
-                    first_line = lines.pop(0)
-                assert isinstance(first_line, text_type)
-                write(
-                    u'{tree_char}-- {key}: {value}\n'.format(
-                        tree_char=tree_char,
-                        key=_escape_control_characters(key),
-                        value=first_line))
-                if not field_limit:
-                    for line in lines:
-                        _write(line + u'\n')
-
-
-def _render_task_node(write, node, field_limit, ignored_task_keys,
-                      human_readable):
-    """
-    Render a single ``_TaskNode`` as an ``ASCII`` tree.
-
-    :type write: ``callable`` taking a single ``text_type`` argument
-    :param write: Callable to write the output.
-
-    :type node: ``_TaskNode)``
-    :param node: ``_TaskNode`` to render.
-
-    :type field_limit: ``int``
-    :param field_limit: Length at which to begin truncating, ``0`` means no
-        truncation.
-
-    :type ignored_task_keys: ``set`` of ``text_type``
-    :param ignored_task_keys: Set of task key names to ignore.
-
-    :type human_readable: ``bool``
-    :param human_readable: Should this be rendered as human-readable?
-    """
-    _child_write = _indented_write(write)
-    write(u'+-- {name}\n'.format(name=_escape_control_characters(node.name)))
-    _render_task(
-        write=_child_write,
-        task=node.task,
-        field_limit=field_limit,
-        ignored_task_keys=ignored_task_keys,
-        human_readable=human_readable)
-
-    for child in node.children():
-        _render_task_node(
-            write=_child_write,
-            node=child,
-            field_limit=field_limit,
-            ignored_task_keys=ignored_task_keys,
-            human_readable=human_readable)
+        fields = {
+            u'timestamp': format.timestamp(),
+        }
+    return compose(
+        _escape_control_characters,
+        partial(format.truncate_value,
+                field_limit) if field_limit else identity,
+        some(
+            format.fields(fields),
+            format.text(),
+            format.binary(encoding),
+            format.anything(encoding)))
 
 
 def render_task_nodes_unicode(write, nodes, field_limit,
-                              ignored_task_keys=None, human_readable=False):
+                              ignored_task_keys=None, human_readable=False,
+                              colorize=False):
     """
     Render a tree of task nodes as an ``ASCII`` tree.
 
@@ -199,24 +88,28 @@ def render_task_nodes_unicode(write, nodes, field_limit,
 
     :type human_readable: ``bool``
     :param human_readable: Should this be rendered as human-readable?
+
+    :type colorize: ``bool``
+    :param colorize: Should the output be colorized?
     """
     if ignored_task_keys is None:
         ignored_task_keys = DEFAULT_IGNORED_KEYS
-    for task_uuid, node in nodes:
-        write(u'{name}\n'.format(
-            name=_escape_control_characters(node.task['task_uuid'])))
-        _render_task_node(
-            write=write,
-            node=node,
-            field_limit=field_limit,
-            ignored_task_keys=ignored_task_keys,
-            human_readable=human_readable)
+    colors = COLORS(colored if colorize else _no_color)
+    format_value = _default_value_formatter(
+        human_readable=human_readable,
+        field_limit=field_limit)
+    get_children = get_children_factory(
+        ignored_task_keys,
+        format_value)
+    get_name = get_name_factory(colors)
+    for root in nodes:
+        write(format_tree(root, get_name, get_children))
         write(u'\n')
 
 
 def render_task_nodes(write, nodes, field_limit,
                       ignored_task_keys=None, human_readable=False,
-                      encoding='utf-8'):
+                      encoding='utf-8', colorize=False):
     """
     :type write: ``callable`` taking a single ``bytes_type`` argument
     :param write: Callable to write the output.
@@ -230,6 +123,111 @@ def render_task_nodes(write, nodes, field_limit,
         nodes=nodes,
         field_limit=field_limit,
         ignored_task_keys=ignored_task_keys,
-        human_readable=human_readable)
+        human_readable=human_readable,
+        colorize=colorize)
+
+
+class Color(object):
+    def __init__(self, color, attrs=[]):
+        self.color = color
+        self.attrs = attrs
+
+    def __get__(self, instance, owner):
+        return lambda text: instance.colored(
+            text, self.color, attrs=self.attrs)
+
+
+class COLORS(object):
+    root = Color('white', ['bold'])
+    success = Color('green')
+    failure = Color('red')
+    prop = Color('blue')
+
+    def __init__(self, colored):
+        self.colored = colored
+
+
+def get_name_factory(colors):
+    """
+    Create a ``get_name`` function for use with `format_tree`.
+    """
+    def get_name(task):
+        if isinstance(task, text_type):
+            return _escape_control_characters(task)
+        elif isinstance(task, tuple):
+            name = _escape_control_characters(task[0])
+            if isinstance(task[1], dict):
+                return name
+            elif isinstance(task[1], text_type):
+                return u'{}: {}'.format(
+                    colors.prop(name),
+                    # No need to escape this because we assume the value
+                    # formatter did that already.
+                    task[1])
+            else:
+                return colors.root(name)
+        else:
+            name = _escape_control_characters(task.name)
+            if task.success is True:
+                return colors.success(name)
+            elif task.success is False:
+                return colors.failure(name)
+            return name
+    return get_name
+
+
+def listify(f):
+    """
+    Convert the decorated function's result to a ``list``.
+    """
+    @wraps(f)
+    def _wrapper(*a, **kw):
+        return list(f(*a, **kw))
+    return _wrapper
+
+
+def get_children_factory(ignored_task_keys, format_value):
+    """
+    Create a ``get_children`` function for use with `format_tree`.
+
+    :type field_limit: ``int``
+    :param field_limit: Length at which to begin truncating, ``0`` means no
+        truncation.
+
+    :type ignored_task_keys: ``set`` of ``text_type``
+    :param ignored_task_keys: Set of task key names to ignore.
+
+    :type format_value: ``Callable[[Any, text_type], Any]``
+    :param format_value: Function to format a value for display purposes.
+    """
+    def items_children(items):
+        for key, value in sorted(items):
+            if key not in ignored_task_keys:
+                if isinstance(value, dict):
+                    yield key, value
+                else:
+                    yield key, format_value(value, key)
+
+    @listify
+    def get_children(task):
+        if isinstance(task, text_type):
+            return
+        elif isinstance(task, tuple):
+            if isinstance(task[1], dict):
+                for child in items_children(task[1].items()):
+                    yield child
+            elif isinstance(task[1], text_type):
+                # The value of Unicode values is incorporated into the name.
+                return
+            else:
+                yield task[1]
+            return
+        else:
+            for child in items_children(task.task.items()):
+                yield child
+            for child in task.children():
+                yield child
+    return get_children
+
 
 __all__ = ['render_task_nodes', 'render_task_nodes_unicode']
