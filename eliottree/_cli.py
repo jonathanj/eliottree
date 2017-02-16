@@ -2,15 +2,17 @@ import argparse
 import codecs
 import json
 import sys
+from functools import partial
 from itertools import chain
+from pprint import pformat
 
 import iso8601
-from six import PY3
+from six import PY3, binary_type
 from six.moves import map
 
 from eliottree import (
-    Tree, filter_by_end_date, filter_by_jmespath, filter_by_start_date,
-    filter_by_uuid, render_task_nodes_unicode)
+    TaskMergeError, Tree, filter_by_end_date, filter_by_jmespath,
+    filter_by_start_date, filter_by_uuid, render_task_nodes_unicode)
 
 
 def build_task_nodes(files=None, select=None, task_uuid=None, start=None,
@@ -38,9 +40,38 @@ def build_task_nodes(files=None, select=None, task_uuid=None, start=None,
         else:
             files = [codecs.getreader('utf-8')(sys.stdin)]
 
+    if PY3:
+        stderr = sys.stderr
+    else:
+        stderr = codecs.getwriter('utf-8')(sys.stderr)
+
+    def _parse_file(inventory, f):
+        for line_no, line in enumerate(f, 1):
+            file_name = f.name
+            try:
+                task = json.loads(line)
+                inventory[id(task)] = file_name, line_no
+                yield task
+            except Exception:
+                if isinstance(line, binary_type):
+                    line = line.decode('utf-8')
+                stderr.write(
+                    u'Task parsing error, file {}, line {}:\n{}\n'.format(
+                        file_name, line_no, line))
+                raise
+
+    inventory = {}
     tree = Tree()
-    tasks = map(json.loads, chain.from_iterable(files))
-    return tree.nodes(tree.merge_tasks(tasks, filter_funcs()))
+    tasks = chain.from_iterable(map(partial(_parse_file, inventory), files))
+    try:
+        return tree.nodes(tree.merge_tasks(tasks, filter_funcs()))
+    except TaskMergeError as e:
+        file_name, line_no = inventory.get(
+            id(e.task), (u'<unknown>', u'<unknown>'))
+        stderr.write(
+            u'Task merging error, file {}, line {}:\n{}\n\n'.format(
+                file_name, line_no, pformat(e.task)))
+        raise e.wrapped_exception
 
 
 def display_task_tree(args):
