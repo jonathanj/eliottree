@@ -7,7 +7,7 @@ from itertools import chain
 from pprint import pformat
 
 import iso8601
-from six import PY3, binary_type
+from six import PY3, binary_type, reraise
 from six.moves import map
 
 from eliottree import (
@@ -71,8 +71,7 @@ def build_task_nodes(files=None, select=None, task_uuid=None, start=None,
         stderr.write(
             u'Task merging error, file {}, line {}:\n{}\n\n'.format(
                 file_name, line_no, pformat(e.task)))
-        exc_info = e.exc_info
-        raise exc_info[0], exc_info[1], exc_info[2]
+        reraise(*e.exc_info)
 
 
 def display_task_tree(args):
