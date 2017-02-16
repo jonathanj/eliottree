@@ -147,7 +147,6 @@ class RenderTaskNodesTests(TestCase):
         When no field limit is specified for task values, multiple lines are
         output for multiline tasks.
         """
-        self.skipTest('tree-format does not handle newlines well')
         fd = BytesIO()
         tree = Tree()
         tree.merge_tasks([multiline_action_task])
@@ -160,8 +159,8 @@ class RenderTaskNodesTests(TestCase):
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
                 u'\u2514\u2500\u2500 app:action@1/started\n'
-                u'    \u251c\u2500\u2500 message: this is a\n'
-                u'        many line message\n'
+                u'    \u251c\u2500\u2500 message: this is a\u23ce\n'
+                u'    \u2502   many line message\n'
                 u'    \u2514\u2500\u2500 timestamp: 1425356800\n\n'
                 .encode('utf-8')))
 
