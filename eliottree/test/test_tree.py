@@ -1,5 +1,6 @@
 from testtools import TestCase
-from testtools.matchers import Equals, Is, MatchesListwise, raises
+from testtools.matchers import (
+    Contains, Equals, Is, MatchesListwise, WarningMessage, Warnings, raises)
 
 from eliottree.test.tasks import (
     action_task, action_task_end, message_task, nested_action_task,
@@ -147,6 +148,25 @@ class TaskNodeTests(TestCase):
         self.assertThat(
             child.children(),
             Equals([child2]))
+
+    def test_duplicate_node(self):
+        """
+        If a node with a duplicate tree path is added then issue a warning and
+        ignore it.
+        """
+        node = _TaskNode(task=action_task, name=u'foo')
+        child = _TaskNode(task=message_task)
+        node.add_child(child)
+        child2 = child
+        self.assertThat(
+            lambda: node.add_child(child2),
+            Warnings(MatchesListwise([
+                WarningMessage(
+                    UserWarning,
+                    message=Contains('Duplicate task twisted:log@1'))])))
+        self.assertThat(
+            node.children(),
+            Equals([child]))
 
 
 class TreeTests(TestCase):

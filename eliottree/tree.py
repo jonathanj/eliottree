@@ -1,3 +1,5 @@
+from warnings import warn
+
 from six import text_type as unicode
 from six import PY2
 
@@ -88,6 +90,12 @@ class _TaskNode(object):
             level = levels.pop(0)
             children = parent._children
             if level in children:
+                # If we've ended up at exactly the same path to a node that
+                # already exists in the tree then probably the input is bad, so
+                # just throw this away.
+                if not levels:
+                    warn('Duplicate task {}: {}'.format(node.name, node.task))
+                    return
                 _add_child(children[level], levels)
             else:
                 children[level] = node
