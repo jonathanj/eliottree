@@ -71,7 +71,8 @@ def build_task_nodes(files=None, select=None, task_uuid=None, start=None,
         stderr.write(
             u'Task merging error, file {}, line {}:\n{}\n\n'.format(
                 file_name, line_no, pformat(e.task)))
-        raise e.wrapped_exception
+        exc_info = e.exc_info
+        raise exc_info[0], exc_info[1], exc_info[2]
 
 
 def display_task_tree(args):

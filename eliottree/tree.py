@@ -1,3 +1,5 @@
+import sys
+
 from six import text_type as unicode
 from six import PY2
 
@@ -123,9 +125,9 @@ class TaskMergeError(RuntimeError):
     """
     An exception occured while trying to merge a task into the tree.
     """
-    def __init__(self, task, wrapped_exception):
+    def __init__(self, task, exc_info):
         self.task = task
-        self.wrapped_exception = wrapped_exception
+        self.exc_info = exc_info
         RuntimeError.__init__(self)
 
 
@@ -207,7 +209,7 @@ class Tree(object):
                     if result is not None:
                         pending.append(result)
                 except Exception as e:
-                    raise TaskMergeError(task, e)
+                    raise TaskMergeError(task, sys.exc_info())
             return pending
 
         pending = _merge(tasks)
