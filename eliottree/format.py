@@ -72,5 +72,5 @@ def truncate_value(limit, value):
     values = value.split(u'\n')
     value = values[0]
     if len(value) > limit or len(values) > 1:
-        return u'{} [...]'.format(value[:limit])
+        return u'{}\u2026'.format(value[:limit])
     return value

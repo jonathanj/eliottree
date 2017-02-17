@@ -181,7 +181,7 @@ class RenderTaskNodesTests(TestCase):
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
                 u'\u2514\u2500\u2500 app:action@1/started\n'
-                u'    \u251c\u2500\u2500 message: this is a [...]\n'
+                u'    \u251c\u2500\u2500 message: this is a\u2026\n'
                 u'    \u2514\u2500\u2500 timestamp: 1425356800\n\n'
                 .encode('utf-8')))
 
@@ -202,8 +202,8 @@ class RenderTaskNodesTests(TestCase):
                 u'cdeb220d-7605-4d5f-8341-1a170222e308\n'
                 u'\u2514\u2500\u2500 twisted:log@1\n'
                 u'    \u251c\u2500\u2500 error: False\n'
-                u'    \u251c\u2500\u2500 message: Main  [...]\n'
-                u'    \u2514\u2500\u2500 timestamp: 14253 [...]\n\n'
+                u'    \u251c\u2500\u2500 message: Main \u2026\n'
+                u'    \u2514\u2500\u2500 timestamp: 14253\u2026\n\n'
                 .encode('utf-8')))
 
     def test_ignored_keys(self):
