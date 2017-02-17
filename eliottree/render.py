@@ -338,10 +338,11 @@ def get_children(ignored_fields, node):
     elif isinstance(node, WrittenMessage):
         return message_fields(node, ignored_fields)
     elif isinstance(node, tuple):
-        if isinstance(node[1], dict):
-            return sorted(node[1].items())
-        elif isinstance(node[1], list):
-            return enumerate(node[1])
+        value = node[1]
+        if isinstance(value, dict):
+            return sorted(value.items())
+        elif isinstance(value, list):
+            return enumerate(value)
     return []
 
 
