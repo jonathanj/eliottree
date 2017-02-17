@@ -1,4 +1,5 @@
 from functools import partial, wraps
+from warnings import warn
 
 from six import text_type, unichr
 from termcolor import colored
@@ -118,6 +119,8 @@ def render_task_nodes(write, nodes, field_limit,
 
     :seealso: `render_task_nodes`
     """
+    warn('render_task_nodes is deprecated, use eliottree.render_tasks instead',
+         DeprecationWarning, 2)
     render_task_nodes_unicode(
         write=lambda value: write(value.encode(encoding)),
         nodes=nodes,

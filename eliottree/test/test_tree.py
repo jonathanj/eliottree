@@ -1,5 +1,6 @@
 from testtools import TestCase
-from testtools.matchers import Equals, Is, MatchesListwise, raises
+from testtools.matchers import (
+    Contains, Equals, Is, IsDeprecated, MatchesListwise, raises)
 
 from eliottree.test.tasks import (
     action_task, action_task_end, message_task, nested_action_task,
@@ -153,6 +154,14 @@ class TreeTests(TestCase):
     """
     Tests for ``eliottree.tree.Tree``.
     """
+    def test_deprecated(self):
+        """
+        `Tree` is deprecated.
+        """
+        self.assertThat(
+            Tree,
+            IsDeprecated(Contains('Tree is deprecated')))
+
     def test_initial(self):
         """
         The initial state of a tree is always empty.

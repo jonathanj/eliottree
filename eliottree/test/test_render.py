@@ -1,6 +1,7 @@
 from six import BytesIO, text_type
 from termcolor import colored
 from testtools import TestCase
+from testtools.matchers import Contains, IsDeprecated
 
 from eliottree import Tree, render_task_nodes
 from eliottree.render import COLORS, _default_value_formatter, get_name_factory
@@ -96,6 +97,14 @@ class RenderTaskNodesTests(TestCase):
     """
     Tests for ``eliottree.render.render_task_nodes``.
     """
+    def test_deprecated(self):
+        """
+        `render_task_nodes` is deprecated.
+        """
+        self.assertThat(
+            lambda: render_task_nodes(lambda: None, [], field_limit=0),
+            IsDeprecated(Contains('render_task_nodes is deprecated')))
+
     def test_tasks(self):
         """
         Render two tasks of sequential levels, by default most standard Eliot

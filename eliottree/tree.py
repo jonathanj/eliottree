@@ -1,3 +1,5 @@
+from warnings import warn
+
 from six import text_type as unicode
 from six import PY2
 
@@ -127,6 +129,8 @@ class Tree(object):
         ``Tree.matching_nodes`` to obtain the tree nodes.
     """
     def __init__(self):
+        warn('Tree is deprecated, use eliottree.tasks_from_iterable instead',
+             DeprecationWarning, 2)
         self._nodes = {}
 
     def nodes(self, uuids=None):
