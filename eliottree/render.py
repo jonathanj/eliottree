@@ -270,7 +270,7 @@ def message_name(colors, message):
             return u'{}{}'.format(
                 colors.parent(message_type),
                 message.task_level.to_string())
-    return '<unnamed>'
+    return u'<unnamed>'
 
 
 def format_node(format_value, colors, node):
@@ -307,7 +307,10 @@ def message_fields(message, ignored_fields):
     Sorted fields for a `WrittenMessage`.
     """
     def _items():
-        yield u'timestamp', message.timestamp
+        try:
+            yield u'timestamp', message.timestamp
+        except KeyError:
+            pass
         for key, value in message.contents.items():
             if key not in ignored_fields:
                 yield key, value
@@ -338,7 +341,6 @@ def get_children(ignored_fields, node):
         if isinstance(node[1], dict):
             return sorted(node[1].items())
         elif isinstance(node[1], list):
-            # XXX: test coverage
             return enumerate(node[1])
     return []
 

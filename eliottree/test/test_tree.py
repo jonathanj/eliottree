@@ -63,7 +63,7 @@ class TaskNameTests(TestCase):
         """
         self.assertThat(
             task_name(nested_action_task),
-            Equals(u'app:action:nested@1,1/started'))
+            Equals(u'app:action:nest@1,1/started'))
 
 
 class TaskNodeTests(TestCase):
