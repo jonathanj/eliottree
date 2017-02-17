@@ -11,7 +11,7 @@ from eliottree.test.tasks import message_task
 
 rendered_message_task = (
     u'cdeb220d-7605-4d5f-8341-1a170222e308\n'
-    u'\u2514\u2500\u2500 twisted:log@1\n'
+    u'\u2514\u2500\u2500 twisted:log/1\n'
     u'    \u251c\u2500\u2500 error: False\n'
     u'    \u251c\u2500\u2500 message: Main loop terminated.\n'
     u'    \u2514\u2500\u2500 timestamp: 2015-03-03 04:25:00\n\n'
