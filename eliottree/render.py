@@ -3,7 +3,7 @@ from warnings import warn
 
 from six import text_type, unichr
 from termcolor import colored
-from toolz import compose, identity
+from toolz import compose, identity, merge
 from tree_format import format_tree
 
 from eliottree import format
@@ -15,15 +15,14 @@ DEFAULT_IGNORED_KEYS = set([
 
 
 _control_equivalents = dict((i, unichr(0x2400 + i)) for i in range(0x20))
-_control_equivalents[0x0a] = u'\n'
 _control_equivalents[0x7f] = u'\u2421'
 
 
-def _escape_control_characters(s):
+def _escape_control_characters(s, overrides={}):
     """
     Escape terminal control characters.
     """
-    return text_type(s).translate(_control_equivalents)
+    return text_type(s).translate(merge(_control_equivalents, overrides))
 
 
 def _no_color(text, *a, **kw):
@@ -57,7 +56,8 @@ def _default_value_formatter(human_readable, field_limit, encoding='utf-8'):
             u'timestamp': format.timestamp(),
         }
     return compose(
-        _escape_control_characters,
+        # We want tree-format to handle newlines.
+        partial(_escape_control_characters, overrides={0x0a: u'\n'}),
         partial(format.truncate_value,
                 field_limit) if field_limit else identity,
         some(
