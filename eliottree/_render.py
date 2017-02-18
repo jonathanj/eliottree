@@ -66,7 +66,7 @@ def _default_value_formatter(human_readable, field_limit, encoding='utf-8'):
             format.anything(encoding)))
 
 
-def message_name(colors, message):
+def message_name(colors, message, end_message=None):
     """
     Derive the name for a message.
 
@@ -79,7 +79,10 @@ def message_name(colors, message):
         if u'action_type' in message.contents:
             action_type = format.escape_control_characters(
                 message.contents.action_type)
-            action_status = message.contents.action_status
+            if end_message:
+                action_status = end_message.contents.action_status
+            else:
+                action_status = message.contents.action_status
             status_color = identity
             if action_status == u'succeeded':
                 status_color = colors.success
@@ -114,7 +117,7 @@ def format_node(format_value, colors, node):
             colors.root(
                 format.escape_control_characters(node.root().task_uuid)))
     elif isinstance(node, WrittenAction):
-        return message_name(colors, node.start_message)
+        return message_name(colors, node.start_message, node.end_message)
     elif isinstance(node, WrittenMessage):
         return message_name(colors, node)
     elif isinstance(node, tuple):

@@ -1009,8 +1009,9 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'\n'.join([
                     colors.root(u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4'),
-                    u'\u2514\u2500\u2500 {}/1 \u21d2 started'.format(
-                        colors.parent(u'app:action')),
+                    u'\u2514\u2500\u2500 {}/1 \u21d2 {}'.format(
+                        colors.parent(u'app:action'),
+                        colors.success(u'started')),
                     u'    \u251c\u2500\u2500 {}: {}'.format(
                         colors.prop(u'timestamp'), u'1425356800'),
                     u'    \u2514\u2500\u2500 {}/2 \u21d2 {}'.format(
