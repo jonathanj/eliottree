@@ -1,1 +1,0 @@
-Context is now reported when JSON or Eliot parse errors occur.
