@@ -64,7 +64,8 @@ Usage from Python
    # Or `codecs.getwriter('utf-8')(sys.stdout).write` on Python 2.
    render_tasks(sys.stdout.write, tasks, colorize=True)
 
-See :code:`help(render_tasks)` from a Python REPL for more information.
+See :code:`help(render_tasks)` and :code:`help(tasks_from_iterable)` from a
+Python REPL for more information.
 
 Usage from the command-line
 ---------------------------
