@@ -82,3 +82,11 @@ janky_message_task = {
     u"mes\nsage": u"Main loop\x1b(0terminated.",
     u"message_type": u"M\x1b(0",
     u"task_level": [1]}
+
+missing_uuid_task = {
+    u"error": False,
+    u"timestamp": 1425356700,
+    u"message": u"Main loop terminated.",
+    u"message_type": u"twisted:log",
+    u"action_type": u"nope",
+    u"task_level": [1]}

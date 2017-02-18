@@ -1,12 +1,13 @@
 """
 Tests for the command-line itself.
 """
-from subprocess import check_output
+from pprint import pformat
+from subprocess import STDOUT, CalledProcessError, check_output
 from tempfile import NamedTemporaryFile
 from unittest import TestCase
 
 from eliottree._compat import dump_json_bytes
-from eliottree.test.tasks import message_task
+from eliottree.test.tasks import message_task, missing_uuid_task
 
 
 rendered_message_task = (
@@ -44,3 +45,43 @@ class EndToEndTests(TestCase):
         f.flush()
         self.assertEqual(check_output(["eliot-tree", f.name]),
                          rendered_message_task)
+
+    def test_parsing_error(self):
+        """
+        ``eliot-tree`` displays an error containing the file name, line number
+        and offending line in the event that parsing fails.
+        """
+        f = NamedTemporaryFile()
+        f.write(dump_json_bytes(message_task) + b'\n')
+        f.write(b'totally not valid JSON {')
+        f.flush()
+        with self.assertRaises(CalledProcessError) as m:
+            check_output(['eliot-tree', f.name], stderr=STDOUT)
+        lines = m.exception.output.splitlines()
+        first_line = lines[0].decode('utf-8')
+        second_line = lines[1].decode('utf-8')
+        self.assertIn('parsing error', first_line)
+        self.assertIn(f.name, first_line)
+        self.assertIn('line 2', first_line)
+        self.assertEqual('totally not valid JSON {', second_line)
+
+    def test_merging_error(self):
+        """
+        ``eliot-tree`` displays an error containing the original file name,
+        line number and offending task in the event that merging fails.
+        """
+        f = NamedTemporaryFile()
+        f.write(dump_json_bytes(message_task) + b'\n')
+        f.write(dump_json_bytes(missing_uuid_task) + b'\n')
+        f.flush()
+        with self.assertRaises(CalledProcessError) as m:
+            check_output(['eliot-tree', f.name], stderr=STDOUT)
+        lines = m.exception.output.splitlines()
+        first_line = lines[0].decode('utf-8')
+        self.assertIn('merging error', first_line)
+        self.assertIn(f.name, first_line)
+        self.assertIn('line 2', first_line)
+        formatted = pformat(missing_uuid_task).encode('utf-8').splitlines()
+        self.assertEqual(
+            lines[1:len(formatted) + 1],
+            formatted)
