@@ -8,9 +8,10 @@ from testtools.matchers import (
 
 from eliottree import (
     Tree, render_task_nodes, render_tasks, tasks_from_iterable)
-from eliottree.render import (
+from eliottree._render import (
     COLORS, RIGHT_DOUBLE_ARROW, _default_value_formatter, _no_color,
-    format_node, get_children, get_name_factory, message_fields, message_name)
+    format_node, get_children, message_fields, message_name)
+from eliottree.render import get_name_factory
 from eliottree.test.matchers import ExactlyEquals
 from eliottree.test.tasks import (
     action_task, action_task_end, action_task_end_failed, dict_action_task,
