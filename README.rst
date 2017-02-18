@@ -70,6 +70,8 @@ Python REPL for more information.
 Usage from the command-line
 ---------------------------
 
+.. code-block::
+
    $ eliot-tree 
    usage: eliot-tree [-h] [-u UUID] [-i KEY] [--raw]
                      [--color {always,auto,never}] [--no-colorize] [-l LENGTH]
