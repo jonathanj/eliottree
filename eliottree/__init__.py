@@ -8,6 +8,9 @@ from eliottree.render import render_task_nodes
 from eliottree.tree import Tree
 
 
+__version__ = '15.3.0'
+
+
 __all__ = [
     'Tree', 'render_task_nodes', 'render_task_nodes_unicode',
     'filter_by_jmespath', 'filter_by_uuid', 'filter_by_start_date',

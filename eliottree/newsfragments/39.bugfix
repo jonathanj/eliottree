@@ -1,0 +1,2 @@
+Human-readable values are now only transformed at render time instead of
+mutating the log data.
