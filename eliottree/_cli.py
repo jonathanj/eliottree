@@ -2,18 +2,34 @@ import argparse
 import codecs
 import json
 import sys
-from functools import partial
-from itertools import chain
 from pprint import pformat
 
 import iso8601
 from six import PY3, binary_type, reraise
-from six.moves import filter, map
+from six.moves import filter
 from toolz import compose
 
 from eliottree import (
-    TaskMergeError, Tree, filter_by_end_date, filter_by_jmespath,
+    EliotParseError, JSONParseError, filter_by_end_date, filter_by_jmespath,
     filter_by_start_date, filter_by_uuid, render_tasks, tasks_from_iterable)
+
+
+def text_writer(fd):
+    """
+    File writer that accepts Unicode to write.
+    """
+    if PY3:
+        return fd
+    return codecs.getwriter('utf-8')(fd)
+
+
+def text_reader(fd):
+    """
+    File reader that returns Unicode from reading.
+    """
+    if PY3:
+        return fd
+    return codecs.getreader('utf-8')(fd)
 
 
 def parse_messages(files=None, select=None, task_uuid=None, start=None,
@@ -33,78 +49,46 @@ def parse_messages(files=None, select=None, task_uuid=None, start=None,
             for query in select:
                 yield filter_by_jmespath(query)
 
+    def _parse(files, inventory):
+        for file in files:
+            file_name = getattr(file, 'name', '<unknown>')
+            for line_number, line in enumerate(file, 1):
+                try:
+                    task = json.loads(line)
+                    inventory[id(task)] = file_name, line_number
+                    yield task
+                except:
+                    raise JSONParseError(
+                        file_name,
+                        line_number,
+                        line.rstrip(u'\n'),
+                        sys.exc_info())
+
     if not files:
-        if PY3:
-            files = [sys.stdin]
-        else:
-            files = [codecs.getreader('utf-8')(sys.stdin)]
-    return tasks_from_iterable(
+        files = [text_reader(sys.stdin)]
+    inventory = {}
+    return inventory, tasks_from_iterable(
         sorted(
-            filter(compose(*filter_funcs()),
-                   map(json.loads, chain.from_iterable(files))),
+            filter(compose(*filter_funcs()), _parse(files, inventory)),
             key=lambda task: task.get(u'timestamp')))
 
-    if PY3:
-        stderr = sys.stderr
-    else:
-        stderr = codecs.getwriter('utf-8')(sys.stderr)
 
-    def _parse_file(inventory, f):
-        for line_no, line in enumerate(f, 1):
-            file_name = f.name
-            try:
-                task = json.loads(line)
-                inventory[id(task)] = file_name, line_no
-                yield task
-            except Exception:
-                if isinstance(line, binary_type):
-                    line = line.decode('utf-8')
-                stderr.write(
-                    u'Task parsing error, file {}, line {}:\n{}\n'.format(
-                        file_name, line_no, line))
-                raise
-
-    inventory = {}
-    tree = Tree()
-    tasks = chain.from_iterable(map(partial(_parse_file, inventory), files))
-    try:
-        return tree.nodes(tree.merge_tasks(tasks, filter_funcs()))
-    except TaskMergeError as e:
-        file_name, line_no = inventory.get(
-            id(e.task), (u'<unknown>', u'<unknown>'))
-        stderr.write(
-            u'Task merging error, file {}, line {}:\n{}\n\n'.format(
-                file_name, line_no, pformat(e.task)))
-        reraise(*e.exc_info)
-
-
-def display_tasks(args):
+def display_tasks(tasks, color, ignored_fields, field_limit, human_readable):
     """
-    Read the input files, apply any command-line-specified behaviour and
-    render the task trees to stdout.
+    Render Eliot tasks, apply any command-line-specified behaviour and render
+    the task trees to stdout.
     """
-    if PY3:
-        write = sys.stdout.write
-    else:
-        write = codecs.getwriter('utf-8')(sys.stdout).write
-
-    if args.color == 'auto':
+    write = text_writer(sys.stdout).write
+    if color == 'auto':
         colorize = sys.stdout.isatty()
     else:
-        colorize = args.color == 'always'
-
-    tasks = parse_messages(
-        files=args.files,
-        select=args.select,
-        task_uuid=args.task_uuid,
-        start=args.start,
-        end=args.end)
+        colorize = color == 'always'
     render_tasks(
         write=write,
         tasks=tasks,
-        ignored_fields=set(args.ignored_fields) or None,
-        field_limit=args.field_limit,
-        human_readable=args.human_readable,
+        ignored_fields=set(ignored_fields) or None,
+        field_limit=field_limit,
+        human_readable=human_readable,
         colorize=colorize)
 
 
@@ -178,4 +162,32 @@ def main():
                         help='''Select tasks whose timestamp occurs before an
                         ISO8601 date.''')
     args = parser.parse_args()
-    display_tasks(args)
+    stderr = text_writer(sys.stderr)
+    try:
+        inventory, tasks = parse_messages(
+            files=args.files,
+            select=args.select,
+            task_uuid=args.task_uuid,
+            start=args.start,
+            end=args.end)
+        display_tasks(
+            tasks=tasks,
+            color=args.color,
+            ignored_fields=args.ignored_fields,
+            field_limit=args.field_limit,
+            human_readable=args.human_readable)
+    except JSONParseError as e:
+        stderr.write('JSON parse error, file {}, line {}:\n{}\n\n'.format(
+            e.file_name,
+            e.line_number,
+            e.line))
+        reraise(*e.exc_info)
+    except EliotParseError as e:
+        file_name, line_number = inventory.get(
+            id(e.message_dict), (u'<unknown>', u'<unknown>'))
+        stderr.write(
+            'Eliot message parse error, file {}, line {}:\n{}\n\n'.format(
+                file_name,
+                line_number,
+                pformat(e.message_dict)))
+        reraise(*e.exc_info)

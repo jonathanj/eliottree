@@ -111,7 +111,8 @@ def format_node(format_value, colors, node):
     """
     if isinstance(node, Task):
         return u'{}'.format(
-            colors.root(format.escape_control_characters(node.root().task_uuid)))
+            colors.root(
+                format.escape_control_characters(node.root().task_uuid)))
     elif isinstance(node, WrittenAction):
         return message_name(colors, node.start_message)
     elif isinstance(node, WrittenMessage):
