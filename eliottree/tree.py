@@ -1,3 +1,5 @@
+import sys
+
 from six import text_type as unicode
 from six import PY2
 
@@ -10,7 +12,7 @@ def task_name(task):
     derive the name, then return ``None``.
     """
     if task is None:
-        raise ValueError('Cannot compute the task name for {!r}'.format(task))
+        raise ValueError('Cannot compute task name', task)
     level = u','.join(map(unicode, task[u'task_level']))
     message_type = task.get('message_type', None)
     if message_type is not None:
@@ -119,6 +121,16 @@ def missing_start_task(task_missing_parent):
         u'task_level': [1]}
 
 
+class TaskMergeError(RuntimeError):
+    """
+    An exception occured while trying to merge a task into the tree.
+    """
+    def __init__(self, task, exc_info):
+        self.task = task
+        self.exc_info = exc_info
+        RuntimeError.__init__(self)
+
+
 class Tree(object):
     """
     Eliot task tree.
@@ -169,27 +181,35 @@ class Tree(object):
         filter_funcs = list(filter_funcs)
         matches = dict((i, set()) for i, _ in enumerate(filter_funcs))
 
+        def _merge_one(task, create_missing_tasks):
+            key = task[u'task_uuid']
+            node = tasktree.get(key)
+            if node is None:
+                if task[u'task_level'] != [1]:
+                    if create_missing_tasks:
+                        n = tasktree[key] = _TaskNode(
+                            task=missing_start_task(task))
+                        n.add_child(_TaskNode(task))
+                    else:
+                        return task
+                else:
+                    node = tasktree[key] = _TaskNode(task=task)
+            else:
+                node.add_child(_TaskNode(task))
+            for i, fn in enumerate(filter_funcs):
+                if fn(task):
+                    matches[i].add(key)
+            return None
+
         def _merge(tasks, create_missing_tasks=False):
             pending = []
             for task in tasks:
-                key = task[u'task_uuid']
-                node = tasktree.get(key)
-                if node is None:
-                    if task[u'task_level'] != [1]:
-                        if create_missing_tasks:
-                            n = tasktree[key] = _TaskNode(
-                                task=missing_start_task(task))
-                            n.add_child(_TaskNode(task))
-                        else:
-                            pending.append(task)
-                            continue
-                    else:
-                        node = tasktree[key] = _TaskNode(task=task)
-                else:
-                    node.add_child(_TaskNode(task))
-                for i, fn in enumerate(filter_funcs):
-                    if fn(task):
-                        matches[i].add(key)
+                try:
+                    result = _merge_one(task, create_missing_tasks)
+                    if result is not None:
+                        pending.append(result)
+                except Exception as e:
+                    raise TaskMergeError(task, sys.exc_info())
             return pending
 
         pending = _merge(tasks)
