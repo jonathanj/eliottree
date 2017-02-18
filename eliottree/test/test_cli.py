@@ -12,7 +12,7 @@ from eliottree.test.tasks import message_task, missing_uuid_task
 
 rendered_message_task = (
     u'cdeb220d-7605-4d5f-8341-1a170222e308\n'
-    u'\u2514\u2500\u2500 twisted:log@1\n'
+    u'\u2514\u2500\u2500 twisted:log/1\n'
     u'    \u251c\u2500\u2500 error: False\n'
     u'    \u251c\u2500\u2500 message: Main loop terminated.\n'
     u'    \u2514\u2500\u2500 timestamp: 2015-03-03 04:25:00\n\n'
@@ -46,10 +46,10 @@ class EndToEndTests(TestCase):
         self.assertEqual(check_output(["eliot-tree", f.name]),
                          rendered_message_task)
 
-    def test_parsing_error(self):
+    def test_json_parse_error(self):
         """
         ``eliot-tree`` displays an error containing the file name, line number
-        and offending line in the event that parsing fails.
+        and offending line in the event that JSON parsing fails.
         """
         f = NamedTemporaryFile()
         f.write(dump_json_bytes(message_task) + b'\n')
@@ -60,27 +60,27 @@ class EndToEndTests(TestCase):
         lines = m.exception.output.splitlines()
         first_line = lines[0].decode('utf-8')
         second_line = lines[1].decode('utf-8')
-        self.assertIn('parsing error', first_line)
+        self.assertIn('JSON parse error', first_line)
         self.assertIn(f.name, first_line)
         self.assertIn('line 2', first_line)
         self.assertEqual('totally not valid JSON {', second_line)
 
-    def test_merging_error(self):
+    def test_eliot_parse_error(self):
         """
         ``eliot-tree`` displays an error containing the original file name,
-        line number and offending task in the event that merging fails.
+        line number and offending task in the event that parsing the message
+        dict fails.
         """
         f = NamedTemporaryFile()
-        f.write(dump_json_bytes(message_task) + b'\n')
         f.write(dump_json_bytes(missing_uuid_task) + b'\n')
         f.flush()
         with self.assertRaises(CalledProcessError) as m:
             check_output(['eliot-tree', f.name], stderr=STDOUT)
         lines = m.exception.output.splitlines()
         first_line = lines[0].decode('utf-8')
-        self.assertIn('merging error', first_line)
+        self.assertIn('Eliot message parse error', first_line)
         self.assertIn(f.name, first_line)
-        self.assertIn('line 2', first_line)
+        self.assertIn('line 1', first_line)
         formatted = pformat(missing_uuid_task).encode('utf-8').splitlines()
         self.assertEqual(
             lines[1:len(formatted) + 1],

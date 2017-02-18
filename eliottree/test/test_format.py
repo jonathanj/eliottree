@@ -146,7 +146,7 @@ class TruncateTests(TestCase):
         """
         self.assertThat(
             format.truncate_value(10, u'abcdefghijklmnopqrstuvwxyz'),
-            ExactlyEquals(u'abcdefghij [...]'))
+            ExactlyEquals(u'abcdefghij\u2026'))
 
     def test_multiple_lines(self):
         """
@@ -155,4 +155,4 @@ class TruncateTests(TestCase):
         """
         self.assertThat(
             format.truncate_value(10, u'abc\ndef'),
-            ExactlyEquals(u'abc [...]'))
+            ExactlyEquals(u'abc\u2026'))

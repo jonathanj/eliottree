@@ -1,6 +1,33 @@
 from datetime import datetime
 
-from six import binary_type, text_type
+from six import binary_type, text_type, unichr
+from toolz import merge
+
+
+_control_equivalents = dict((i, unichr(0x2400 + i)) for i in range(0x20))
+_control_equivalents[0x7f] = u'\u2421'
+
+
+def escape_control_characters(s, overrides={}):
+    """
+    Replace terminal control characters with their Unicode control character
+    equivalent.
+    """
+    return text_type(s).translate(merge(_control_equivalents, overrides))
+
+
+def some(*fs):
+    """
+    Create a function that returns the first non-``None`` result of applying
+    the arguments to each ``fs``.
+    """
+    def _some(*a, **kw):
+        for f in fs:
+            result = f(*a, **kw)
+            if result is not None:
+                return result
+        return None
+    return _some
 
 
 def binary(encoding):
@@ -72,5 +99,10 @@ def truncate_value(limit, value):
     values = value.split(u'\n')
     value = values[0]
     if len(value) > limit or len(values) > 1:
-        return u'{} [...]'.format(value[:limit])
+        return u'{}\u2026'.format(value[:limit])
     return value
+
+
+__all__ = [
+    'escape_control_characters', 'some', 'binary', 'text', 'fields',
+    'timestamp', 'anything', 'truncate_value']

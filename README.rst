@@ -4,7 +4,7 @@ eliottree
 
 |build|_ |coverage|_
 
-Render `Eliot <https://github.com/ClusterHQ/eliot>`_ logs as an ASCII tree.
+Render `Eliot <https://github.com/scatterhq/eliot>`_ logs as an ASCII tree.
 
 This output:
 
@@ -12,34 +12,34 @@ This output:
 
    $ eliot-tree eliot.log
    f3a32bb3-ea6b-457c-aa99-08a3d0491ab4
-   +-- app:soap:client:request@1/started
-       |-- dump: /home/user/dump_files/20150303/1425356936.28_Client_req.xml
-       |-- soapAction: a_soap_action
-       |-- timestamp: 2015-03-03 04:28:56.278875
-       `-- uri: http://example.org/soap
-       +-- app:soap:client:success@2,1/started
-           `-- timestamp: 2015-03-03 04:28:57.516579
-           +-- app:soap:client:success@2,2/succeeded
-               |-- dump: /home/user/dump_files/20150303/1425356937.52_Client_res.xml
-               `-- timestamp: 2015-03-03 04:28:57.517077
-       +-- app:soap:client:request@3/succeeded
-           |-- status: 200
-           `-- timestamp: 2015-03-03 04:28:57.517161
-
+   └── app:soap:client:request/1 ⇒ started
+       ├── dump: /home/user/dump_files/20150303/1425356936.28_Client_req.xml
+       ├── soapAction: a_soap_action
+       ├── timestamp: 2015-03-03 04:28:56.278875
+       ├── uri: http://example.org/soap
+       ├── app:soap:client:success/2/1 ⇒ started
+       │   ├── timestamp: 2015-03-03 04:28:57.516579
+       │   └── app:soap:client:success/2/2 ⇒ succeeded
+       │       ├── dump: /home/user/dump_files/20150303/1425356937.52_Client_res.xml
+       │       └── timestamp: 2015-03-03 04:28:57.517077
+       └── app:soap:client:request/3 ⇒ succeeded
+           ├── status: 200
+           └── timestamp: 2015-03-03 04:28:57.517161
+   
    89a56df5-d808-4a7c-8526-e603aae2e2f2
-   +-- app:soap:service:request@1/started
-       |-- dump: /home/user/dump_files/20150303/1425357068.03_Service_req.xml
-       |-- soapAction: method
-       |-- timestamp: 2015-03-03 04:31:08.032091
-       `-- uri: /endpoints/soap/method
-       +-- app:soap:service:success@2,1/started
-           `-- timestamp: 2015-03-03 04:31:11.512330
-           +-- app:soap:service:success@2,2/succeeded
-               |-- dump: /home/user/dump_files/20150303/1425357071.51_Service_res.xml
-               `-- timestamp: 2015-03-03 04:31:11.513453
-       +-- app:soap:service:request@3/succeeded
-           |-- status: 200
-           `-- timestamp: 2015-03-03 04:31:11.513992
+   └── app:soap:service:request/1 ⇒ started
+       ├── dump: /home/user/dump_files/20150303/1425357068.03_Service_req.xml
+       ├── soapAction: method
+       ├── timestamp: 2015-03-03 04:31:08.032091
+       ├── uri: /endpoints/soap/method
+       ├── app:soap:service:success/2/1 ⇒ started
+       │   ├── timestamp: 2015-03-03 04:31:11.512330
+       │   └── app:soap:service:success/2/2 ⇒ succeeded
+       │       ├── dump: /home/user/dump_files/20150303/1425357071.51_Service_res.xml
+       │       └── timestamp: 2015-03-03 04:31:11.513453
+       └── app:soap:service:request/3 ⇒ succeeded
+           ├── status: 200
+           └── timestamp: 2015-03-03 04:31:11.513992
 
 was generated from:
 
@@ -54,11 +54,25 @@ was generated from:
    {"task_uuid": "89a56df5-d808-4a7c-8526-e603aae2e2f2", "action_type": "app:soap:service:success", "dump": "/home/user/dump_files/20150303/1425357071.51_Service_res.xml", "timestamp": 1425357071.513453, "action_status": "succeeded", "task_level": [2, 2]}
    {"status": 200, "task_uuid": "89a56df5-d808-4a7c-8526-e603aae2e2f2", "task_level": [3], "action_type": "app:soap:service:request", "timestamp": 1425357071.513992, "action_status": "succeeded"}
 
-Usage
------
+Usage from Python
+-----------------
+
+.. code-block:: python
+
+   import json, sys
+   from eliottree import tasks_from_iterable, render_tasks
+   # Or `codecs.getwriter('utf-8')(sys.stdout).write` on Python 2.
+   render_tasks(sys.stdout.write, tasks, colorize=True)
+
+See :code:`help(render_tasks)` and :code:`help(tasks_from_iterable)` from a
+Python REPL for more information.
+
+Usage from the command-line
+---------------------------
 
 .. code-block::
 
+   $ eliot-tree 
    usage: eliot-tree [-h] [-u UUID] [-i KEY] [--raw]
                      [--color {always,auto,never}] [--no-colorize] [-l LENGTH]
                      [--select QUERY] [--start START] [--end END]

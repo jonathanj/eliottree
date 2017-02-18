@@ -18,7 +18,7 @@ def filter_by_uuid(task_uuid):
     """
     Produce a function for filtering tasks by their UUID.
     """
-    return filter_by_jmespath('task_uuid == `{}`'.format(task_uuid))
+    return filter_by_jmespath(u'task_uuid == `{}`'.format(task_uuid))
 
 
 def _parse_timestamp(timestamp):
@@ -34,7 +34,7 @@ def filter_by_start_date(start_date):
     date and time.
     """
     def _filter(task):
-        return _parse_timestamp(task['timestamp']) >= start_date
+        return _parse_timestamp(task[u'timestamp']) >= start_date
     return _filter
 
 
@@ -44,7 +44,7 @@ def filter_by_end_date(end_date):
     and time.
     """
     def _filter(task):
-        return _parse_timestamp(task['timestamp']) < end_date
+        return _parse_timestamp(task[u'timestamp']) < end_date
     return _filter
 
 
