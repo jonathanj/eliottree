@@ -68,9 +68,7 @@ def parse_messages(files=None, select=None, task_uuid=None, start=None,
         files = [text_reader(sys.stdin)]
     inventory = {}
     return inventory, tasks_from_iterable(
-        sorted(
-            filter(compose(*filter_funcs()), _parse(files, inventory)),
-            key=lambda task: task.get(u'timestamp')))
+        filter(compose(*filter_funcs()), _parse(files, inventory)))
 
 
 def display_tasks(tasks, color, ignored_fields, field_limit, human_readable):
