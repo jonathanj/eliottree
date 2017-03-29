@@ -54,6 +54,14 @@ was generated from:
    {"task_uuid": "89a56df5-d808-4a7c-8526-e603aae2e2f2", "action_type": "app:soap:service:success", "dump": "/home/user/dump_files/20150303/1425357071.51_Service_res.xml", "timestamp": 1425357071.513453, "action_status": "succeeded", "task_level": [2, 2]}
    {"status": 200, "task_uuid": "89a56df5-d808-4a7c-8526-e603aae2e2f2", "task_level": [3], "action_type": "app:soap:service:request", "timestamp": 1425357071.513992, "action_status": "succeeded"}
 
+Streaming
+---------
+
+It's possible to pipe data into eliot-tree, from a tailed log for example, and
+have it rendered incrementally. There is a caveat though: Trees are only
+rendered once an end message—a success or failure status—for the tree's root
+action appears in the data.
+
 Usage from Python
 -----------------
 
