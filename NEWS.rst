@@ -4,6 +4,15 @@ eliot-tree changelog
 
 .. towncrier release notes start
 
+Eliottree 17.1.0
+==========
+
+Bugfixes
+--------
+
+- Fixed an incompatibility with iso8601 0.1.12. (#60)
+
+
 Eliottree 17.0.0
 ==========
 
