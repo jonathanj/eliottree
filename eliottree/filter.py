@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import jmespath
-from iso8601.iso8601 import Utc
+from iso8601.iso8601 import UTC
 
 
 def filter_by_jmespath(query):
@@ -25,7 +25,7 @@ def _parse_timestamp(timestamp):
     """
     Parse a timestamp into a UTC L{datetime}.
     """
-    return datetime.utcfromtimestamp(timestamp).replace(tzinfo=Utc())
+    return datetime.utcfromtimestamp(timestamp).replace(tzinfo=UTC)
 
 
 def filter_by_start_date(start_date):
