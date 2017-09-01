@@ -1,7 +1,7 @@
 from calendar import timegm
 from datetime import datetime
 
-from iso8601.iso8601 import Utc
+from iso8601.iso8601 import UTC
 from testtools import TestCase
 from testtools.matchers import Equals
 
@@ -63,7 +63,7 @@ class FilterByStartDate(TestCase):
         Return ``False`` if the input task's timestamp is before the start
         date.
         """
-        now = datetime(2015, 10, 30, 22, 1, 15).replace(tzinfo=Utc())
+        now = datetime(2015, 10, 30, 22, 1, 15).replace(tzinfo=UTC)
         task = dict(
             message_task,
             timestamp=timegm(datetime(2015, 10, 30, 22, 1, 0).utctimetuple()))
@@ -75,7 +75,7 @@ class FilterByStartDate(TestCase):
         """
         Return ``True`` if the input task's timestamp is after the start date.
         """
-        now = datetime(2015, 10, 30, 22, 1, 15).replace(tzinfo=Utc())
+        now = datetime(2015, 10, 30, 22, 1, 15).replace(tzinfo=UTC)
         task = dict(
             message_task,
             timestamp=timegm(datetime(2015, 10, 30, 22, 2).utctimetuple()))
@@ -88,7 +88,7 @@ class FilterByStartDate(TestCase):
         Return ``True`` if the input task's timestamp is the same as the start
         date.
         """
-        now = datetime(2015, 10, 30, 22, 1, 15).replace(tzinfo=Utc())
+        now = datetime(2015, 10, 30, 22, 1, 15).replace(tzinfo=UTC)
         task = dict(
             message_task,
             timestamp=timegm(datetime(2015, 10, 30, 22, 1, 15).utctimetuple()))
@@ -106,7 +106,7 @@ class FilterByEndDate(TestCase):
         Return ``False`` if the input task's timestamp is after the start
         date.
         """
-        now = datetime(2015, 10, 30, 22, 1, 15).replace(tzinfo=Utc())
+        now = datetime(2015, 10, 30, 22, 1, 15).replace(tzinfo=UTC)
         task = dict(
             message_task,
             timestamp=timegm(datetime(2015, 10, 30, 22, 2).utctimetuple()))
@@ -119,7 +119,7 @@ class FilterByEndDate(TestCase):
         Return ``False`` if the input task's timestamp is the same as the start
         date.
         """
-        now = datetime(2015, 10, 30, 22, 1, 15).replace(tzinfo=Utc())
+        now = datetime(2015, 10, 30, 22, 1, 15).replace(tzinfo=UTC)
         task = dict(
             message_task,
             timestamp=timegm(datetime(2015, 10, 30, 22, 1, 15).utctimetuple()))
@@ -131,7 +131,7 @@ class FilterByEndDate(TestCase):
         """
         Return ``True`` if the input task's timestamp is before the start date.
         """
-        now = datetime(2015, 10, 30, 22, 1, 15).replace(tzinfo=Utc())
+        now = datetime(2015, 10, 30, 22, 1, 15).replace(tzinfo=UTC)
         task = dict(
             message_task,
             timestamp=timegm(datetime(2015, 10, 30, 22, 1).utctimetuple()))
