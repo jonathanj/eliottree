@@ -8,7 +8,7 @@ from eliottree.render import render_task_nodes
 from eliottree.tree import Tree
 
 
-__version__ = '17.0.0'
+__version__ = '17.1.0'
 
 
 __all__ = [
