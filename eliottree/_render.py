@@ -5,6 +5,7 @@ from functools import partial
 from eliot._action import WrittenAction
 from eliot._message import WrittenMessage
 from eliot._parse import Task
+from six import text_type
 from termcolor import colored
 from toolz import compose, excepts, identity
 from tree_format import format_tree
@@ -150,7 +151,11 @@ def message_fields(message, ignored_fields):
         for key, value in message.contents.items():
             if key not in ignored_fields:
                 yield key, value
-    return sorted(_items()) if message else []
+
+    def _sortkey(x):
+        k = x[0]
+        return format_namespace(k) if is_namespace(k) else k
+    return sorted(_items(), key=_sortkey) if message else []
 
 
 def get_children(ignored_fields, node):
@@ -245,7 +250,9 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
                     len(caught_exceptions))))
         for exc in caught_exceptions:
             for line in traceback.format_exception(*exc):
-                write_err(line.decode('utf-8'))
+                if not isinstance(line, text_type):
+                    line = line.decode('utf-8')
+                write_err(line)
             write_err(u'\n')
 
 

@@ -685,8 +685,8 @@ class MessageFieldsTests(TestCase):
         self.assertThat(
             message_fields(message, set()),
             Equals([
-                (eliot_ns(u'timestamp'), 12345678),
-                (u'a', 1)]))
+                (u'a', 1),
+                (eliot_ns(u'timestamp'), 12345678)]))
 
     def test_ignored_fields(self):
         """
@@ -726,9 +726,9 @@ class GetChildrenTests(TestCase):
         self.assertThat(
             list(get_children({u'c'}, node)),
             Equals([
-                (eliot_ns(u'timestamp'), start_message.timestamp),
                 (u'action_status', start_message.contents.action_status),
-                (u'action_type', start_message.contents.action_type)]))
+                (u'action_type', start_message.contents.action_type),
+                (eliot_ns(u'timestamp'), start_message.timestamp)]))
 
     def test_written_action_start(self):
         """
@@ -741,9 +741,9 @@ class GetChildrenTests(TestCase):
         self.assertThat(
             list(get_children({u'foo'}, node))[:3],
             Equals([
-                (eliot_ns(u'timestamp'), start_message.timestamp),
                 (u'action_status', start_message.contents.action_status),
-                (u'action_type', start_message.contents.action_type)]))
+                (u'action_type', start_message.contents.action_type),
+                (eliot_ns(u'timestamp'), start_message.timestamp)]))
 
     def test_written_action_children(self):
         """
@@ -969,8 +969,8 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
                 u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\n'
-                u'    \u2514\u2500\u2500 action_status: started\n\n'))
+                u'    \u251c\u2500\u2500 action_status: started\n'
+                u'    \u2514\u2500\u2500 eliot/timestamp: 1425356800\n\n'))
 
     def test_task_data(self):
         """
@@ -1050,9 +1050,9 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-\u241b(0aa99-08a3d0491ab4\n'
                 u'\u2514\u2500\u2500 A\u241b(0/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\u241b(0\n'
                 u'    \u251c\u2500\u2500 \u241b(0: \n'
                 u'    \u2502   \u2514\u2500\u2500 \u241b(0: nope\n'
+                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\u241b(0\n'
                 u'    \u2514\u2500\u2500 mes\u240asage: hello\u241b(0world\n\n'
             ))
 
