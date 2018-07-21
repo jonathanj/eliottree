@@ -4,7 +4,8 @@ from termcolor import colored
 from testtools import ExpectedException, TestCase
 from testtools.matchers import AfterPreprocessing as After
 from testtools.matchers import (
-    Contains, EndsWith, Equals, HasLength, IsDeprecated, StartsWith)
+    Contains, EndsWith, Equals, HasLength, IsDeprecated, MatchesAll,
+    MatchesListwise, StartsWith)
 
 from eliottree import (
     Tree, render_task_nodes, render_tasks, tasks_from_iterable)
@@ -838,9 +839,45 @@ class RenderTasksTests(TestCase):
     """
     def render_tasks(self, iterable, **kw):
         fd = StringIO()
+        err = StringIO(u'')
         tasks = tasks_from_iterable(iterable)
-        render_tasks(write=fd.write, tasks=tasks, **kw)
+        render_tasks(write=fd.write, write_err=err.write, tasks=tasks, **kw)
+        if err.tell():
+            return fd.getvalue(), err.getvalue()
         return fd.getvalue()
+
+    def test_format_node_failures(self):
+        """
+        Catch exceptions when formatting nodes and display a message without
+        interrupting the processing of tasks. List all caught exceptions to stderr.
+        """
+        def bad_format_node(*a, **kw):
+            raise ValueError('Nope')
+        self.assertThat(
+            self.render_tasks([message_task],
+                              format_node=bad_format_node),
+            MatchesListwise([
+                Contains(u'<node formatting exception>'),
+                MatchesAll(
+                    Contains(u'Traceback (most recent call last):'),
+                    Contains(u'ValueError: Nope'))]))
+
+    def test_format_value_failures(self):
+        """
+        Catch exceptions when formatting node values and display a message
+        without interrupting the processing of tasks. List all caught
+        exceptions to stderr.
+        """
+        def bad_format_value(*a, **kw):
+            raise ValueError('Nope')
+        self.assertThat(
+            self.render_tasks([message_task],
+                              format_value=bad_format_value),
+            MatchesListwise([
+                Contains(u'message: <value formatting exception>'),
+                MatchesAll(
+                    Contains(u'Traceback (most recent call last):'),
+                    Contains(u'ValueError: Nope'))]))
 
     def test_tasks(self):
         """

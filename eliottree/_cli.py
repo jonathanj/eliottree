@@ -77,12 +77,14 @@ def display_tasks(tasks, color, ignored_fields, field_limit, human_readable):
     the task trees to stdout.
     """
     write = text_writer(sys.stdout).write
+    write_err = text_writer(sys.stderr).write
     if color == 'auto':
         colorize = sys.stdout.isatty()
     else:
         colorize = color == 'always'
     render_tasks(
         write=write,
+        write_err=write_err,
         tasks=tasks,
         ignored_fields=set(ignored_fields) or None,
         field_limit=field_limit,
