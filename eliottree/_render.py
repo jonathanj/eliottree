@@ -8,6 +8,7 @@ from toolz import compose, identity
 from tree_format import format_tree
 
 from eliottree import format
+from eliottree._util import eliot_ns, format_namespace, is_namespace
 
 
 RIGHT_DOUBLE_ARROW = u'\u21d2'
@@ -52,7 +53,7 @@ def _default_value_formatter(human_readable, field_limit, encoding='utf-8'):
     fields = {}
     if human_readable:
         fields = {
-            u'timestamp': format.timestamp(),
+            eliot_ns(u'timestamp'): format.timestamp(),
         }
     return compose(
         # We want tree-format to handle newlines.
@@ -126,6 +127,8 @@ def format_node(format_value, colors, node):
             value = u''
         else:
             value = format_value(value, key)
+        if is_namespace(key):
+            key = format_namespace(key)
         return u'{}: {}'.format(
             colors.prop(format.escape_control_characters(key)),
             value)
@@ -138,7 +141,7 @@ def message_fields(message, ignored_fields):
     """
     def _items():
         try:
-            yield u'timestamp', message.timestamp
+            yield eliot_ns('timestamp'), message.timestamp
         except KeyError:
             pass
         for key, value in message.contents.items():

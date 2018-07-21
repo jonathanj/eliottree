@@ -11,6 +11,7 @@ from eliottree import (
 from eliottree._render import (
     COLORS, RIGHT_DOUBLE_ARROW, _default_value_formatter, _no_color,
     format_node, get_children, message_fields, message_name)
+from eliottree._util import eliot_ns
 from eliottree.render import get_name_factory
 from eliottree.test.matchers import ExactlyEquals
 from eliottree.test.tasks import (
@@ -72,7 +73,7 @@ class DefaultValueFormatterTests(TestCase):
 
     def test_timestamp_field(self):
         """
-        Format ``timestamp`` fields as human-readable if the feature was
+        Format Eliot ``timestamp`` fields as human-readable if the feature was
         requested.
         """
         format_value = _default_value_formatter(
@@ -80,11 +81,25 @@ class DefaultValueFormatterTests(TestCase):
         # datetime(2015, 6, 6, 22, 57, 12)
         now = 1433631432
         self.assertThat(
-            format_value(now, u'timestamp'),
+            format_value(now, eliot_ns(u'timestamp')),
             ExactlyEquals(u'2015-06-06 22:57:12'))
         self.assertThat(
-            format_value(str(now), u'timestamp'),
+            format_value(str(now), eliot_ns(u'timestamp')),
             ExactlyEquals(u'2015-06-06 22:57:12'))
+
+    def test_not_eliot_timestamp_field(self):
+        """
+        Do not format user fields named ``timestamp``.
+        """
+        format_value = _default_value_formatter(
+            human_readable=True, field_limit=0)
+        now = 1433631432
+        self.assertThat(
+            format_value(now, u'timestamp'),
+            ExactlyEquals(unicode(now)))
+        self.assertThat(
+            format_value(str(now), u'timestamp'),
+            ExactlyEquals(unicode(now)))
 
     def test_timestamp_field_not_human(self):
         """
@@ -668,8 +683,9 @@ class MessageFieldsTests(TestCase):
         message = WrittenMessage.from_dict({u'a': 1, u'timestamp': 12345678})
         self.assertThat(
             message_fields(message, set()),
-            Equals([(u'a', 1),
-                    (u'timestamp', 12345678)]))
+            Equals([
+                (eliot_ns(u'timestamp'), 12345678),
+                (u'a', 1)]))
 
     def test_ignored_fields(self):
         """
@@ -709,9 +725,9 @@ class GetChildrenTests(TestCase):
         self.assertThat(
             list(get_children({u'c'}, node)),
             Equals([
+                (eliot_ns(u'timestamp'), start_message.timestamp),
                 (u'action_status', start_message.contents.action_status),
-                (u'action_type', start_message.contents.action_type),
-                (u'timestamp', start_message.timestamp)]))
+                (u'action_type', start_message.contents.action_type)]))
 
     def test_written_action_start(self):
         """
@@ -724,9 +740,9 @@ class GetChildrenTests(TestCase):
         self.assertThat(
             list(get_children({u'foo'}, node))[:3],
             Equals([
+                (eliot_ns(u'timestamp'), start_message.timestamp),
                 (u'action_status', start_message.contents.action_status),
-                (u'action_type', start_message.contents.action_type),
-                (u'timestamp', start_message.timestamp)]))
+                (u'action_type', start_message.contents.action_type)]))
 
     def test_written_action_children(self):
         """
@@ -836,9 +852,9 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
                 u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 timestamp: 1425356800\n'
+                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\n'
                 u'    \u2514\u2500\u2500 app:action/2 \u21d2 succeeded\n'
-                u'        \u2514\u2500\u2500 timestamp: 1425356800\n\n'))
+                u'        \u2514\u2500\u2500 eliot/timestamp: 1425356800\n\n'))
 
     def test_tasks_human_readable(self):
         """
@@ -851,9 +867,9 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
                 u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 timestamp: 2015-03-03 04:26:40\n'
+                u'    \u251c\u2500\u2500 eliot/timestamp: 2015-03-03 04:26:40\n'
                 u'    \u2514\u2500\u2500 app:action/2 \u21d2 succeeded\n'
-                u'        \u2514\u2500\u2500 timestamp: 2015-03-03 04:26:40\n'
+                u'        \u2514\u2500\u2500 eliot/timestamp: 2015-03-03 04:26:40\n'
                 u'\n'))
 
     def test_multiline_field(self):
@@ -871,9 +887,9 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
                 u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 message: this is a\u23ce\n'
-                u'    \u2502   many line message\n'
-                u'    \u2514\u2500\u2500 timestamp: 1425356800\n\n'))
+                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\n'
+                u'    \u2514\u2500\u2500 message: this is a\u23ce\n'
+                u'        many line message\n\n'))
 
     def test_multiline_field_limit(self):
         """
@@ -886,8 +902,8 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
                 u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 message: this is a\u2026\n'
-                u'    \u2514\u2500\u2500 timestamp: 1425356800\n\n'))
+                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\n'
+                u'    \u2514\u2500\u2500 message: this is a\u2026\n\n'))
 
     def test_field_limit(self):
         """
@@ -899,9 +915,9 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'cdeb220d-7605-4d5f-8341-1a170222e308\n'
                 u'\u2514\u2500\u2500 twisted:log/1\n'
+                u'    \u251c\u2500\u2500 eliot/timestamp: 14253\u2026\n'
                 u'    \u251c\u2500\u2500 error: False\n'
-                u'    \u251c\u2500\u2500 message: Main \u2026\n'
-                u'    \u2514\u2500\u2500 timestamp: 14253\u2026\n\n'))
+                u'    \u2514\u2500\u2500 message: Main \u2026\n\n'))
 
     def test_ignored_keys(self):
         """
@@ -913,8 +929,8 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
                 u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 action_status: started\n'
-                u'    \u2514\u2500\u2500 timestamp: 1425356800\n\n'))
+                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\n'
+                u'    \u2514\u2500\u2500 action_status: started\n\n'))
 
     def test_task_data(self):
         """
@@ -925,9 +941,9 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'cdeb220d-7605-4d5f-8341-1a170222e308\n'
                 u'\u2514\u2500\u2500 twisted:log/1\n'
+                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356700\n'
                 u'    \u251c\u2500\u2500 error: False\n'
-                u'    \u251c\u2500\u2500 message: Main loop terminated.\n'
-                u'    \u2514\u2500\u2500 timestamp: 1425356700\n\n'))
+                u'    \u2514\u2500\u2500 message: Main loop terminated.\n\n'))
 
     def test_dict_data(self):
         """
@@ -938,9 +954,9 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
                 u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 some_data: \n'
-                u'    \u2502   \u2514\u2500\u2500 a: 42\n'
-                u'    \u2514\u2500\u2500 timestamp: 1425356800\n\n'))
+                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\n'
+                u'    \u2514\u2500\u2500 some_data: \n'
+                u'        \u2514\u2500\u2500 a: 42\n\n'))
 
     def test_list_data(self):
         """
@@ -951,10 +967,10 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
                 u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 some_data: \n'
-                u'    \u2502   \u251c\u2500\u2500 0: a\n'
-                u'    \u2502   \u2514\u2500\u2500 1: b\n'
-                u'    \u2514\u2500\u2500 timestamp: 1425356800\n\n'))
+                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\n'
+                u'    \u2514\u2500\u2500 some_data: \n'
+                u'        \u251c\u2500\u2500 0: a\n'
+                u'        \u2514\u2500\u2500 1: b\n\n'))
 
     def test_nested(self):
         """
@@ -965,9 +981,9 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
                 u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 timestamp: 1425356800\n'
+                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\n'
                 u'    \u2514\u2500\u2500 app:action:nest/1/1 \u21d2 started\n'
-                u'        \u2514\u2500\u2500 timestamp: 1425356900\n\n'))
+                u'        \u2514\u2500\u2500 eliot/timestamp: 1425356900\n\n'))
 
     def test_janky_message(self):
         """
@@ -979,10 +995,10 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'cdeb220d-7605-4d5f-\u241b(08341-1a170222e308\n'
                 u'\u2514\u2500\u2500 M\u241b(0/1\n'
+                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356700\n'
                 u'    \u251c\u2500\u2500 er\u241bror: False\n'
-                u'    \u251c\u2500\u2500 mes\u240asage: '
-                u'Main loop\u241b(0terminated.\n'
-                u'    \u2514\u2500\u2500 timestamp: 1425356700\n\n'))
+                u'    \u2514\u2500\u2500 mes\u240asage: '
+                u'Main loop\u241b(0terminated.\n\n'))
 
     def test_janky_action(self):
         """
@@ -994,10 +1010,10 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-\u241b(0aa99-08a3d0491ab4\n'
                 u'\u2514\u2500\u2500 A\u241b(0/1 \u21d2 started\n'
+                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\u241b(0\n'
                 u'    \u251c\u2500\u2500 \u241b(0: \n'
                 u'    \u2502   \u2514\u2500\u2500 \u241b(0: nope\n'
-                u'    \u251c\u2500\u2500 mes\u240asage: hello\u241b(0world\n'
-                u'    \u2514\u2500\u2500 timestamp: 1425356800\u241b(0\n\n'))
+                u'    \u2514\u2500\u2500 mes\u240asage: hello\u241b(0world\n\n'))
 
     def test_colorize(self):
         """
@@ -1013,11 +1029,11 @@ class RenderTasksTests(TestCase):
                         colors.parent(u'app:action'),
                         colors.success(u'started')),
                     u'    \u251c\u2500\u2500 {}: {}'.format(
-                        colors.prop(u'timestamp'), u'1425356800'),
+                        colors.prop(u'eliot/timestamp'), u'1425356800'),
                     u'    \u2514\u2500\u2500 {}/2 \u21d2 {}'.format(
                         colors.parent(u'app:action'),
                         colors.success(u'succeeded')),
                     u'        \u2514\u2500\u2500 {}: {}'.format(
-                        colors.prop('timestamp'), u'1425356800'),
+                        colors.prop('eliot/timestamp'), u'1425356800'),
                     u'\n',
                 ])))
