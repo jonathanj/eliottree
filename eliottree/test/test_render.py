@@ -97,10 +97,10 @@ class DefaultValueFormatterTests(TestCase):
         now = 1433631432
         self.assertThat(
             format_value(now, u'timestamp'),
-            ExactlyEquals(unicode(now)))
+            ExactlyEquals(text_type(now)))
         self.assertThat(
-            format_value(str(now), u'timestamp'),
-            ExactlyEquals(unicode(now)))
+            format_value(text_type(now), u'timestamp'),
+            ExactlyEquals(text_type(now)))
 
     def test_timestamp_field_not_human(self):
         """
