@@ -849,7 +849,8 @@ class RenderTasksTests(TestCase):
     def test_format_node_failures(self):
         """
         Catch exceptions when formatting nodes and display a message without
-        interrupting the processing of tasks. List all caught exceptions to stderr.
+        interrupting the processing of tasks. List all caught exceptions to
+        stderr.
         """
         def bad_format_node(*a, **kw):
             raise ValueError('Nope')
@@ -904,9 +905,11 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
                 u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 eliot/timestamp: 2015-03-03 04:26:40\n'
+                u'    \u251c\u2500\u2500 eliot/timestamp: '
+                u'2015-03-03 04:26:40\n'
                 u'    \u2514\u2500\u2500 app:action/2 \u21d2 succeeded\n'
-                u'        \u2514\u2500\u2500 eliot/timestamp: 2015-03-03 04:26:40\n'
+                u'        \u2514\u2500\u2500 eliot/timestamp: '
+                u'2015-03-03 04:26:40\n'
                 u'\n'))
 
     def test_multiline_field(self):
@@ -1050,7 +1053,8 @@ class RenderTasksTests(TestCase):
                 u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\u241b(0\n'
                 u'    \u251c\u2500\u2500 \u241b(0: \n'
                 u'    \u2502   \u2514\u2500\u2500 \u241b(0: nope\n'
-                u'    \u2514\u2500\u2500 mes\u240asage: hello\u241b(0world\n\n'))
+                u'    \u2514\u2500\u2500 mes\u240asage: hello\u241b(0world\n\n'
+            ))
 
     def test_colorize(self):
         """
