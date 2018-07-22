@@ -72,7 +72,6 @@ janky_action_task = {
     u"action_type": u"A\x1b(0",
     u"task_level": [1],
     u"mes\nsage": u"hello\x1b(0world",
-    u"\x1b(0": "nope",
     u"\x1b(0": {u"\x1b(0": "nope"}}
 
 janky_message_task = {

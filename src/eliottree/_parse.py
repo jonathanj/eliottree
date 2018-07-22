@@ -21,7 +21,7 @@ def tasks_from_iterable(iterable):
             completed, parser = parser.add(message_dict)
             for task in completed:
                 yield task
-        except:
+        except Exception:
             raise EliotParseError(message_dict, sys.exc_info())
     for task in parser.incomplete_tasks():
         yield task
