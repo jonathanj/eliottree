@@ -7,6 +7,7 @@ from tree_format import format_tree
 
 from eliottree._render import (
     COLORS, DEFAULT_IGNORED_KEYS, _default_value_formatter, _no_color)
+from eliottree._util import is_namespace, eliot_ns
 from eliottree.format import escape_control_characters
 
 
@@ -81,7 +82,10 @@ def get_name_factory(colors):
         if isinstance(task, text_type):
             return escape_control_characters(task)
         elif isinstance(task, tuple):
-            name = escape_control_characters(task[0])
+            key = task[0]
+            if is_namespace(key):
+                key = key.name
+            name = escape_control_characters(key)
             if isinstance(task[1], dict):
                 return name
             elif isinstance(task[1], text_type):
@@ -129,6 +133,8 @@ def get_children_factory(ignored_task_keys, format_value):
     def items_children(items):
         for key, value in sorted(items):
             if key not in ignored_task_keys:
+                if key == u'timestamp':
+                    key = eliot_ns(key)
                 if isinstance(value, dict):
                     yield key, value
                 else:
@@ -150,7 +156,10 @@ def get_children_factory(ignored_task_keys, format_value):
             return
         else:
             for child in items_children(task.task.items()):
-                yield child
+                if child[0] == u'timestamp':
+                    yield eliot_ns(child[0]), child[1]
+                else:
+                    yield child
             for child in task.children():
                 yield child
     return get_children

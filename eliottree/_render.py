@@ -1,13 +1,17 @@
+import sys
+import traceback
 from functools import partial
 
 from eliot._action import WrittenAction
 from eliot._message import WrittenMessage
 from eliot._parse import Task
+from six import text_type
 from termcolor import colored
-from toolz import compose, identity
+from toolz import compose, excepts, identity
 from tree_format import format_tree
 
 from eliottree import format
+from eliottree._util import eliot_ns, format_namespace, is_namespace
 
 
 RIGHT_DOUBLE_ARROW = u'\u21d2'
@@ -33,6 +37,7 @@ class COLORS(object):
     success = Color('green')
     failure = Color('red')
     prop = Color('blue')
+    error = Color('red', ['bold'])
 
     def __init__(self, colored):
         self.colored = colored
@@ -52,7 +57,7 @@ def _default_value_formatter(human_readable, field_limit, encoding='utf-8'):
     fields = {}
     if human_readable:
         fields = {
-            u'timestamp': format.timestamp(),
+            eliot_ns(u'timestamp'): format.timestamp(),
         }
     return compose(
         # We want tree-format to handle newlines.
@@ -126,6 +131,8 @@ def format_node(format_value, colors, node):
             value = u''
         else:
             value = format_value(value, key)
+        if is_namespace(key):
+            key = format_namespace(key)
         return u'{}: {}'.format(
             colors.prop(format.escape_control_characters(key)),
             value)
@@ -138,13 +145,17 @@ def message_fields(message, ignored_fields):
     """
     def _items():
         try:
-            yield u'timestamp', message.timestamp
+            yield eliot_ns('timestamp'), message.timestamp
         except KeyError:
             pass
         for key, value in message.contents.items():
             if key not in ignored_fields:
                 yield key, value
-    return sorted(_items()) if message else []
+
+    def _sortkey(x):
+        k = x[0]
+        return format_namespace(k) if is_namespace(k) else k
+    return sorted(_items(), key=_sortkey) if message else []
 
 
 def get_children(ignored_fields, node):
@@ -176,8 +187,20 @@ def get_children(ignored_fields, node):
     return []
 
 
+def track_exceptions(f, caught, default=None):
+    """
+    Decorate ``f`` with a function that traps exceptions and appends them to
+    ``caught``, returning ``default`` in their place.
+    """
+    def _catch(_):
+        caught.append(sys.exc_info())
+        return default
+    return excepts(Exception, f, _catch)
+
+
 def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
-                 human_readable=False, colorize=False):
+                 human_readable=False, colorize=False, write_err=None,
+                 format_node=format_node, format_value=None):
     """
     Render Eliot tasks as an ASCII tree.
 
@@ -193,18 +216,44 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
     most Eliot metadata.
     :param bool human_readable: Render field values as human-readable?
     :param bool colorize: Colorized the output?
+    :type write_err: Callable[[`text_type`], None]
+    :param write_err: Callable used to write errors.
+    :param format_node: See `format_node`.
+    :type format_value: Callable[[Any], `text_type`]
+    :param format_value: Callable to format a value.
     """
     if ignored_fields is None:
         ignored_fields = DEFAULT_IGNORED_KEYS
-    _format_node = partial(
-        format_node,
-        _default_value_formatter(human_readable=human_readable,
-                                 field_limit=field_limit),
-        COLORS(colored if colorize else _no_color))
+    colors = COLORS(colored if colorize else _no_color)
+    caught_exceptions = []
+    if format_value is None:
+        format_value = _default_value_formatter(
+            human_readable=human_readable,
+            field_limit=field_limit)
+    _format_value = track_exceptions(
+        format_value,
+        caught_exceptions,
+        u'<value formatting exception>')
+    _format_node = track_exceptions(
+        partial(format_node, _format_value, colors),
+        caught_exceptions,
+        u'<node formatting exception>')
     _get_children = partial(get_children, ignored_fields)
     for task in tasks:
         write(format_tree(task, _format_node, _get_children))
         write(u'\n')
+
+    if write_err and caught_exceptions:
+        write_err(
+            colors.error(
+                u'Exceptions ({}) occurred during processing:\n'.format(
+                    len(caught_exceptions))))
+        for exc in caught_exceptions:
+            for line in traceback.format_exception(*exc):
+                if not isinstance(line, text_type):
+                    line = line.decode('utf-8')
+                write_err(line)
+            write_err(u'\n')
 
 
 __all__ = ['render_tasks']
