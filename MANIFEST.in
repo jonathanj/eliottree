@@ -1,0 +1,4 @@
+include README.rst LICENSE tox.ini .coveragerc setup.cfg
+graft src
+include versioneer.py
+include src/eliottree/_version.py

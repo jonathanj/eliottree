@@ -211,7 +211,7 @@ class Tree(object):
                     result = _merge_one(task, create_missing_tasks)
                     if result is not None:
                         pending.append(result)
-                except Exception as e:
+                except Exception:
                     raise TaskMergeError(task, sys.exc_info())
             return pending
 

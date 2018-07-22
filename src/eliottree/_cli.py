@@ -57,7 +57,7 @@ def parse_messages(files=None, select=None, task_uuid=None, start=None,
                     task = json.loads(line)
                     inventory[id(task)] = file_name, line_number
                     yield task
-                except:
+                except Exception:
                     raise JSONParseError(
                         file_name,
                         line_number,

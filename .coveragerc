@@ -1,0 +1,15 @@
+[run]
+branch = True
+source = eliottree
+omit =
+    src/eliottree/_version.py
+
+[paths]
+source =
+    src/eliottree
+    .tox/*/lib/python*/site-packages/eliottree
+    .tox/*/site-packages/eliottree
+
+[report]
+omit =
+    src/eliottree/_version.py

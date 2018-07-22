@@ -17,3 +17,7 @@ __all__ = [
     'filter_by_end_date', 'render_tasks', 'tasks_from_iterable',
     'EliotParseError', 'JSONParseError',
 ]
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
