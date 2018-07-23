@@ -1,0 +1,4 @@
+[tool.towncrier]
+    package = "eliottree"
+    package_dir = "src"
+    filename = "NEWS.rst"
