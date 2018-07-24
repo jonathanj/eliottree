@@ -4,6 +4,15 @@ eliot-tree changelog
 
 .. towncrier release notes start
 
+Eliottree 18.0.0 (2018-07-23)
+=============================
+
+Features
+--------
+
+- Exceptions that occur during node or value formatting no longer interrupt processing and are displayed after the tree output. (#69)
+
+
 Eliottree 17.1.0
 ==========
 
