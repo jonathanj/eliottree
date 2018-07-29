@@ -8,6 +8,8 @@ Render `Eliot <https://github.com/scatterhq/eliot>`_ logs as an ASCII tree.
 
 This output:
 
+.. image:: doc/example_eliot_log.png
+
 .. code-block::
 
    $ eliot-tree eliot.log
