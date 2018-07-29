@@ -10,6 +10,8 @@ This output:
 
 .. image:: doc/example_eliot_log.png
 
+(or as text)
+
 .. code-block::
 
    $ eliot-tree eliot.log
