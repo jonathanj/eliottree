@@ -10,7 +10,7 @@ from testtools.matchers import (
 from eliottree import (
     Tree, render_task_nodes, render_tasks, tasks_from_iterable)
 from eliottree._render import (
-    COLORS, RIGHT_DOUBLE_ARROW, _default_value_formatter, _no_color,
+    COLORS, HOURGLASS, RIGHT_DOUBLE_ARROW, _default_value_formatter, _no_color,
     format_node, get_children, message_fields, message_name)
 from eliottree._util import eliot_ns
 from eliottree.render import get_name_factory
@@ -147,7 +147,7 @@ class RenderTaskNodesTests(TestCase):
                 u'\u2514\u2500\u2500 app:action@1/started\n'
                 u'    \u251c\u2500\u2500 timestamp: 1425356800\n'
                 u'    \u2514\u2500\u2500 app:action@2/succeeded\n'
-                u'        \u2514\u2500\u2500 timestamp: 1425356800\n\n'
+                u'        \u2514\u2500\u2500 timestamp: 1425356802\n\n'
                 .encode('utf-8')))
 
     def test_tasks_human_readable(self):
@@ -170,7 +170,7 @@ class RenderTaskNodesTests(TestCase):
                 u'\u2514\u2500\u2500 app:action@1/started\n'
                 u'    \u251c\u2500\u2500 timestamp: 2015-03-03 04:26:40\n'
                 u'    \u2514\u2500\u2500 app:action@2/succeeded\n'
-                u'        \u2514\u2500\u2500 timestamp: 2015-03-03 04:26:40\n'
+                u'        \u2514\u2500\u2500 timestamp: 2015-03-03 04:26:42\n'
                 u'\n'
                 .encode('utf-8')))
 
@@ -393,7 +393,7 @@ class RenderTaskNodesTests(TestCase):
                     u'    \u2514\u2500\u2500 {}'.format(
                         C.success(u'app:action@2/succeeded')),
                     u'        \u2514\u2500\u2500 {}: {}'.format(
-                        C.prop('timestamp'), u'1425356800'),
+                        C.prop('timestamp'), u'1425356802'),
                     u'\n',
                 ]).encode('utf-8')))
 
@@ -491,6 +491,10 @@ colors = COLORS(colored)
 no_colors = COLORS(_no_color)
 
 
+def no_formatting(value, field_name=None):
+    return text_type(value)
+
+
 class MessageNameTests(TestCase):
     """
     Tests for `eliottree.render.message_name`.
@@ -501,7 +505,7 @@ class MessageNameTests(TestCase):
         """
         message = next(tasks_from_iterable([action_task])).root().start_message
         self.assertThat(
-            message_name(colors, message),
+            message_name(colors, no_formatting, message),
             StartsWith(colors.parent(message.contents.action_type)))
 
     def test_action_task_level(self):
@@ -510,7 +514,7 @@ class MessageNameTests(TestCase):
         """
         message = next(tasks_from_iterable([action_task])).root().start_message
         self.assertThat(
-            message_name(colors, message),
+            message_name(colors, no_formatting, message),
             Contains(message.task_level.to_string()))
 
     def test_action_status(self):
@@ -519,8 +523,8 @@ class MessageNameTests(TestCase):
         """
         message = next(tasks_from_iterable([action_task])).root().start_message
         self.assertThat(
-            message_name(colors, message),
-            EndsWith(u'started'))
+            message_name(colors, no_formatting, message),
+            Contains(u'started'))
 
     def test_action_status_success(self):
         """
@@ -530,8 +534,8 @@ class MessageNameTests(TestCase):
             action_task, action_task_end,
         ])).root().end_message
         self.assertThat(
-            message_name(colors, message),
-            EndsWith(colors.success(u'succeeded')))
+            message_name(colors, no_formatting, message),
+            Contains(colors.success(u'succeeded')))
 
     def test_action_status_failed(self):
         """
@@ -541,8 +545,8 @@ class MessageNameTests(TestCase):
             action_task, action_task_end_failed,
         ])).root().end_message
         self.assertThat(
-            message_name(colors, message),
-            EndsWith(colors.failure(u'failed')))
+            message_name(colors, no_formatting, message),
+            Contains(colors.failure(u'failed')))
 
     def test_message_type(self):
         """
@@ -550,7 +554,7 @@ class MessageNameTests(TestCase):
         """
         message = WrittenMessage.from_dict(message_task)
         self.assertThat(
-            message_name(colors, message),
+            message_name(colors, no_formatting, message),
             StartsWith(colors.parent(message.contents.message_type)))
 
     def test_message_task_level(self):
@@ -559,7 +563,7 @@ class MessageNameTests(TestCase):
         """
         message = WrittenMessage.from_dict(message_task)
         self.assertThat(
-            message_name(colors, message),
+            message_name(colors, no_formatting, message),
             Contains(message.task_level.to_string()))
 
     def test_unknown(self):
@@ -568,11 +572,11 @@ class MessageNameTests(TestCase):
         ``<unnamed>``.
         """
         self.assertThat(
-            message_name(colors, None),
+            message_name(colors, no_formatting, None),
             ExactlyEquals(u'<unnamed>'))
-        message = WrittenMessage.from_dict({})
+        message = WrittenMessage.from_dict({u'timestamp': 0})
         self.assertThat(
-            message_name(colors, message),
+            message_name(colors, no_formatting, message),
             ExactlyEquals(u'<unnamed>'))
 
 
@@ -582,7 +586,7 @@ class FormatNodeTests(TestCase):
     """
     def format_node(self, node, format_value=None, colors=no_colors):
         if format_value is None:
-            def format_value(value, _):
+            def format_value(value, field_name=None):
                 return value
         return format_node(format_value, colors, node)
 
@@ -599,14 +603,17 @@ class FormatNodeTests(TestCase):
         """
         `WrittenAction`'s start message is rendered.
         """
-        node = next(tasks_from_iterable([action_task])).root()
+        tasks = tasks_from_iterable([action_task, action_task_end])
+        node = next(tasks).root()
         self.assertThat(
             self.format_node(node),
-            ExactlyEquals(u'{}{} {} {}'.format(
+            ExactlyEquals(u'{}{} {} {} {} \u29d6 {}'.format(
                 node.start_message.contents.action_type,
                 node.start_message.task_level.to_string(),
                 RIGHT_DOUBLE_ARROW,
-                node.start_message.contents.action_status)))
+                node.start_message.contents.action_status,
+                node.start_message.timestamp,
+                node.end_message.timestamp - node.start_message.timestamp)))
 
     def test_tuple_list(self):
         """
@@ -675,7 +682,7 @@ class MessageFieldsTests(TestCase):
 
     def test_fields(self):
         """
-        Include all the message fields and the timestamp.
+        Include all the message fields but not the timestamp.
         """
         message = WrittenMessage.from_dict({u'a': 1})
         self.assertThat(
@@ -685,8 +692,7 @@ class MessageFieldsTests(TestCase):
         self.assertThat(
             message_fields(message, set()),
             Equals([
-                (u'a', 1),
-                (eliot_ns(u'timestamp'), 12345678)]))
+                (u'a', 1)]))
 
     def test_ignored_fields(self):
         """
@@ -727,8 +733,7 @@ class GetChildrenTests(TestCase):
             list(get_children({u'c'}, node)),
             Equals([
                 (u'action_status', start_message.contents.action_status),
-                (u'action_type', start_message.contents.action_type),
-                (eliot_ns(u'timestamp'), start_message.timestamp)]))
+                (u'action_type', start_message.contents.action_type)]))
 
     def test_written_action_start(self):
         """
@@ -739,11 +744,10 @@ class GetChildrenTests(TestCase):
             action_task, nested_action_task, action_task_end])).root()
         start_message = node.start_message
         self.assertThat(
-            list(get_children({u'foo'}, node))[:3],
+            list(get_children({u'foo'}, node))[:2],
             Equals([
                 (u'action_status', start_message.contents.action_status),
-                (u'action_type', start_message.contents.action_type),
-                (eliot_ns(u'timestamp'), start_message.timestamp)]))
+                (u'action_type', start_message.contents.action_type)]))
 
     def test_written_action_children(self):
         """
@@ -752,7 +756,7 @@ class GetChildrenTests(TestCase):
         node = next(tasks_from_iterable([
             action_task, nested_action_task, action_task_end])).root()
         self.assertThat(
-            list(get_children({u'foo'}, node))[3],
+            list(get_children({u'foo'}, node))[2],
             Equals(node.children[0]))
 
     def test_written_action_no_children(self):
@@ -763,7 +767,7 @@ class GetChildrenTests(TestCase):
         node = next(tasks_from_iterable([action_task])).root()
         self.assertThat(
             list(get_children({u'foo'}, node)),
-            HasLength(3))
+            HasLength(2))
 
     def test_written_action_no_end(self):
         """
@@ -782,7 +786,7 @@ class GetChildrenTests(TestCase):
         node = next(tasks_from_iterable([
             action_task, nested_action_task, action_task_end])).root()
         self.assertThat(
-            list(get_children({u'foo'}, node))[4:],
+            list(get_children({u'foo'}, node))[3:],
             Equals([node.end_message]))
 
     def test_written_message(self):
@@ -889,10 +893,10 @@ class RenderTasksTests(TestCase):
             self.render_tasks([action_task, action_task_end]),
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\n'
-                u'    \u2514\u2500\u2500 app:action/2 \u21d2 succeeded\n'
-                u'        \u2514\u2500\u2500 eliot/timestamp: 1425356800\n\n'))
+                u'\u2514\u2500\u2500 app:action/1 \u21d2 started '
+                u'1425356800 \u29d6 2\n'
+                u'    \u2514\u2500\u2500 app:action/2 \u21d2 succeeded '
+                u'1425356802\n\n'))
 
     def test_tasks_human_readable(self):
         """
@@ -904,12 +908,10 @@ class RenderTasksTests(TestCase):
                               human_readable=True),
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 eliot/timestamp: '
-                u'2015-03-03 04:26:40\n'
-                u'    \u2514\u2500\u2500 app:action/2 \u21d2 succeeded\n'
-                u'        \u2514\u2500\u2500 eliot/timestamp: '
-                u'2015-03-03 04:26:40\n'
+                u'\u2514\u2500\u2500 app:action/1 \u21d2 started '
+                u'2015-03-03 04:26:40 \u29d6 2.000s\n'
+                u'    \u2514\u2500\u2500 app:action/2 \u21d2 succeeded '
+                u'2015-03-03 04:26:42\n'
                 u'\n'))
 
     def test_multiline_field(self):
@@ -926,8 +928,8 @@ class RenderTasksTests(TestCase):
             fd.getvalue(),
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\n'
+                u'\u2514\u2500\u2500 app:action/1 \u21d2 started '
+                u'1425356800\n'
                 u'    \u2514\u2500\u2500 message: this is a\u23ce\n'
                 u'        many line message\n\n'))
 
@@ -941,8 +943,8 @@ class RenderTasksTests(TestCase):
                               field_limit=1000),
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\n'
+                u'\u2514\u2500\u2500 app:action/1 \u21d2 started '
+                u'1425356800\n'
                 u'    \u2514\u2500\u2500 message: this is a\u2026\n\n'))
 
     def test_field_limit(self):
@@ -954,8 +956,8 @@ class RenderTasksTests(TestCase):
                               field_limit=5),
             ExactlyEquals(
                 u'cdeb220d-7605-4d5f-8341-1a170222e308\n'
-                u'\u2514\u2500\u2500 twisted:log/1\n'
-                u'    \u251c\u2500\u2500 eliot/timestamp: 14253\u2026\n'
+                u'\u2514\u2500\u2500 twisted:log/1 '
+                u'14253\u2026\n'
                 u'    \u251c\u2500\u2500 error: False\n'
                 u'    \u2514\u2500\u2500 message: Main \u2026\n\n'))
 
@@ -968,9 +970,9 @@ class RenderTasksTests(TestCase):
                               ignored_fields={u'action_type'}),
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 action_status: started\n'
-                u'    \u2514\u2500\u2500 eliot/timestamp: 1425356800\n\n'))
+                u'\u2514\u2500\u2500 app:action/1 \u21d2 started '
+                u'1425356800\n'
+                u'    \u2514\u2500\u2500 action_status: started\n\n'))
 
     def test_task_data(self):
         """
@@ -980,8 +982,8 @@ class RenderTasksTests(TestCase):
             self.render_tasks([message_task]),
             ExactlyEquals(
                 u'cdeb220d-7605-4d5f-8341-1a170222e308\n'
-                u'\u2514\u2500\u2500 twisted:log/1\n'
-                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356700\n'
+                u'\u2514\u2500\u2500 twisted:log/1 '
+                u'1425356700\n'
                 u'    \u251c\u2500\u2500 error: False\n'
                 u'    \u2514\u2500\u2500 message: Main loop terminated.\n\n'))
 
@@ -993,8 +995,8 @@ class RenderTasksTests(TestCase):
             self.render_tasks([dict_action_task]),
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\n'
+                u'\u2514\u2500\u2500 app:action/1 \u21d2 started '
+                u'1425356800\n'
                 u'    \u2514\u2500\u2500 some_data: \n'
                 u'        \u2514\u2500\u2500 a: 42\n\n'))
 
@@ -1006,8 +1008,8 @@ class RenderTasksTests(TestCase):
             self.render_tasks([list_action_task]),
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\n'
+                u'\u2514\u2500\u2500 app:action/1 \u21d2 started '
+                u'1425356800\n'
                 u'    \u2514\u2500\u2500 some_data: \n'
                 u'        \u251c\u2500\u2500 0: a\n'
                 u'        \u2514\u2500\u2500 1: b\n\n'))
@@ -1020,10 +1022,10 @@ class RenderTasksTests(TestCase):
             self.render_tasks([action_task, nested_action_task]),
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
-                u'\u2514\u2500\u2500 app:action/1 \u21d2 started\n'
-                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\n'
-                u'    \u2514\u2500\u2500 app:action:nest/1/1 \u21d2 started\n'
-                u'        \u2514\u2500\u2500 eliot/timestamp: 1425356900\n\n'))
+                u'\u2514\u2500\u2500 app:action/1 \u21d2 started '
+                u'1425356800\n'
+                u'    \u2514\u2500\u2500 app:action:nest/1/1 \u21d2 started '
+                u'1425356900\n\n'))
 
     def test_janky_message(self):
         """
@@ -1034,8 +1036,8 @@ class RenderTasksTests(TestCase):
             self.render_tasks([janky_message_task]),
             ExactlyEquals(
                 u'cdeb220d-7605-4d5f-\u241b(08341-1a170222e308\n'
-                u'\u2514\u2500\u2500 M\u241b(0/1\n'
-                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356700\n'
+                u'\u2514\u2500\u2500 M\u241b(0/1 '
+                u'1425356700\n'
                 u'    \u251c\u2500\u2500 er\u241bror: False\n'
                 u'    \u2514\u2500\u2500 mes\u240asage: '
                 u'Main loop\u241b(0terminated.\n\n'))
@@ -1049,10 +1051,10 @@ class RenderTasksTests(TestCase):
             self.render_tasks([janky_action_task]),
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-\u241b(0aa99-08a3d0491ab4\n'
-                u'\u2514\u2500\u2500 A\u241b(0/1 \u21d2 started\n'
+                u'\u2514\u2500\u2500 A\u241b(0/1 \u21d2 started '
+                u'1425356800\u241b(0\n'
                 u'    \u251c\u2500\u2500 \u241b(0: \n'
                 u'    \u2502   \u2514\u2500\u2500 \u241b(0: nope\n'
-                u'    \u251c\u2500\u2500 eliot/timestamp: 1425356800\u241b(0\n'
                 u'    \u2514\u2500\u2500 mes\u240asage: hello\u241b(0world\n\n'
             ))
 
@@ -1066,15 +1068,15 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'\n'.join([
                     colors.root(u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4'),
-                    u'\u2514\u2500\u2500 {}/1 \u21d2 {}'.format(
+                    u'\u2514\u2500\u2500 {}/1 \u21d2 {} {} {} {}'.format(
                         colors.parent(u'app:action'),
-                        colors.success(u'started')),
-                    u'    \u251c\u2500\u2500 {}: {}'.format(
-                        colors.prop(u'eliot/timestamp'), u'1425356800'),
-                    u'    \u2514\u2500\u2500 {}/2 \u21d2 {}'.format(
+                        colors.success(u'started'),
+                        colors.timestamp(u'1425356800'),
+                        HOURGLASS,
+                        colors.duration(u'2')),
+                    u'    \u2514\u2500\u2500 {}/2 \u21d2 {} {}'.format(
                         colors.parent(u'app:action'),
-                        colors.success(u'succeeded')),
-                    u'        \u2514\u2500\u2500 {}: {}'.format(
-                        colors.prop('eliot/timestamp'), u'1425356800'),
+                        colors.success(u'succeeded'),
+                        colors.timestamp(u'1425356802')),
                     u'\n',
                 ])))

@@ -14,7 +14,8 @@ from eliottree import format
 from eliottree._util import eliot_ns, format_namespace, is_namespace
 
 
-RIGHT_DOUBLE_ARROW = u'\u21d2'
+RIGHT_DOUBLE_ARROW = u'\N{RIGHTWARDS DOUBLE ARROW}'
+HOURGLASS = u'\N{WHITE HOURGLASS}'
 
 DEFAULT_IGNORED_KEYS = set([
     u'action_status', u'action_type', u'task_level', u'task_uuid',
@@ -38,6 +39,8 @@ class COLORS(object):
     failure = Color('red')
     prop = Color('blue')
     error = Color('red', ['bold'])
+    timestamp = Color('white', ['dark'])
+    duration = Color('blue', ['dark'])
 
     def __init__(self, colored):
         self.colored = colored
@@ -57,7 +60,9 @@ def _default_value_formatter(human_readable, field_limit, encoding='utf-8'):
     fields = {}
     if human_readable:
         fields = {
-            eliot_ns(u'timestamp'): format.timestamp(),
+            eliot_ns(u'timestamp'): format.timestamp(
+                include_microsecond=False),
+            eliot_ns(u'duration'): format.duration(),
         }
     return compose(
         # We want tree-format to handle newlines.
@@ -71,7 +76,7 @@ def _default_value_formatter(human_readable, field_limit, encoding='utf-8'):
             format.anything(encoding)))
 
 
-def message_name(colors, message, end_message=None):
+def message_name(colors, format_value, message, end_message=None):
     """
     Derive the name for a message.
 
@@ -81,10 +86,21 @@ def message_name(colors, message, end_message=None):
     otherwise no name will be derived.
     """
     if message is not None:
+        timestamp = colors.timestamp(
+            format_value(
+                message.timestamp, field_name=eliot_ns('timestamp')))
         if u'action_type' in message.contents:
             action_type = format.escape_control_characters(
                 message.contents.action_type)
+            duration = u''
             if end_message:
+                duration_seconds = end_message.timestamp - message.timestamp
+                duration = u' {} {}'.format(
+                    HOURGLASS,
+                    colors.duration(
+                        format_value(
+                            duration_seconds,
+                            field_name=eliot_ns('duration'))))
                 action_status = end_message.contents.action_status
             else:
                 action_status = message.contents.action_status
@@ -93,17 +109,20 @@ def message_name(colors, message, end_message=None):
                 status_color = colors.success
             elif action_status == u'failed':
                 status_color = colors.failure
-            return u'{}{} {} {}'.format(
+            return u'{}{} {} {} {}{}'.format(
                 colors.parent(action_type),
                 message.task_level.to_string(),
                 RIGHT_DOUBLE_ARROW,
-                status_color(message.contents.action_status))
+                status_color(message.contents.action_status),
+                timestamp,
+                duration)
         elif u'message_type' in message.contents:
             message_type = format.escape_control_characters(
                 message.contents.message_type)
-            return u'{}{}'.format(
+            return u'{}{} {}'.format(
                 colors.parent(message_type),
-                message.task_level.to_string())
+                message.task_level.to_string(),
+                timestamp)
     return u'<unnamed>'
 
 
@@ -122,9 +141,16 @@ def format_node(format_value, colors, node):
             colors.root(
                 format.escape_control_characters(node.root().task_uuid)))
     elif isinstance(node, WrittenAction):
-        return message_name(colors, node.start_message, node.end_message)
+        return message_name(
+            colors,
+            format_value,
+            node.start_message,
+            node.end_message)
     elif isinstance(node, WrittenMessage):
-        return message_name(colors, node)
+        return message_name(
+            colors,
+            format_value,
+            node)
     elif isinstance(node, tuple):
         key, value = node
         if isinstance(value, (dict, list)):
@@ -145,7 +171,8 @@ def message_fields(message, ignored_fields):
     """
     def _items():
         try:
-            yield eliot_ns('timestamp'), message.timestamp
+            #yield eliot_ns('timestamp'), message.timestamp
+            pass
         except KeyError:
             pass
         for key, value in message.contents.items():
