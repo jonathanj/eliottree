@@ -66,16 +66,28 @@ def fields(format_mapping):
     return _format_field_value
 
 
-def timestamp():
+def timestamp(include_microsecond=True):
     """
     Create a formatter for POSIX timestamp values.
     """
     def _format_timestamp_value(value, field_name=None):
-        result = datetime.utcfromtimestamp(float(value)).isoformat(' ')
+        result = datetime.utcfromtimestamp(float(value))
+        if not include_microsecond:
+            result = result.replace(microsecond=0)
+        result = result.isoformat(' ')
         if isinstance(result, binary_type):
             result = result.decode('ascii')
         return result
     return _format_timestamp_value
+
+
+def duration():
+    """
+    Create a formatter for duration values specified as seconds.
+    """
+    def _format_duration(value, field_name=None):
+        return u'{:.3f}s'.format(value)
+    return _format_duration
 
 
 def anything(encoding):
