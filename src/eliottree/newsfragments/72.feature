@@ -1,1 +1,0 @@
-Timestamps are now rendered after the action status or message level. A duration is included too when available.
