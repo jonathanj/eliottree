@@ -4,8 +4,8 @@ from termcolor import colored
 from testtools import ExpectedException, TestCase
 from testtools.matchers import AfterPreprocessing as After
 from testtools.matchers import (
-    Contains, EndsWith, Equals, HasLength, IsDeprecated, MatchesAll,
-    MatchesListwise, StartsWith)
+    Contains, Equals, HasLength, IsDeprecated, MatchesAll, MatchesListwise,
+    StartsWith)
 
 from eliottree import (
     Tree, render_task_nodes, render_tasks, tasks_from_iterable)
