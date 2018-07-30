@@ -170,11 +170,6 @@ def message_fields(message, ignored_fields):
     Sorted fields for a `WrittenMessage`.
     """
     def _items():
-        try:
-            #yield eliot_ns('timestamp'), message.timestamp
-            pass
-        except KeyError:
-            pass
         for key, value in message.contents.items():
             if key not in ignored_fields:
                 yield key, value
