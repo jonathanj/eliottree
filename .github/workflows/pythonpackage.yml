@@ -8,8 +8,10 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: [2.7, 3.6, 3.7]
+        #os: [ubuntu-latest, windows-latest]
+        #python-version: [2.7, 3.6, 3.7]
+        os: [windows-latest]
+        python-version: [3.6]
     
     steps:
     - uses: actions/checkout@v1
@@ -30,6 +32,7 @@ jobs:
       run: |
         pip install pytest
         pip install pytest-cov
+        chcp
         pytest --cov=./ --cov-report=xml
     - uses: codecov/codecov-action@v1.0.5
       with:
