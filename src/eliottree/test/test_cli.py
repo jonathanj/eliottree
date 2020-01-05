@@ -74,14 +74,13 @@ def check_output(args, stdin=None):
     print('::STDOUT::')
     print(stdout)
     print('::STDERR::')
-    print(stderr)           
+    print(stderr)
     if pipes.returncode != 0:
         output = namedtuple('Output', ['stdout', 'stderr'])(
             six.ensure_binary(stdout),
             six.ensure_binary(stderr))
         raise CalledProcessError(pipes.returncode, args, output)
-    #return six.ensure_binary(stdout)
-    return stdout
+    return six.ensure_binary(stdout)
 
 
 class EndToEndTests(TestCase):
