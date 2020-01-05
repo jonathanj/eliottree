@@ -43,7 +43,7 @@ setup(
         'Programming Language :: Python',
     ],
     install_requires=[
-        'six>=1.9.0',
+        'six>=1.13.0',
         'jmespath>=0.7.1',
         'iso8601>=0.1.10',
         'tree-format>=0.1.2',

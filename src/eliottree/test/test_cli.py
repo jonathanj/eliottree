@@ -2,6 +2,7 @@
 Tests for the command-line itself.
 """
 import os
+import six
 import tempfile
 from collections import namedtuple
 from pprint import pformat
@@ -66,11 +67,11 @@ def check_output(args, stdin=None):
         universal_newlines=True)
     stdout, stderr = pipes.communicate(stdin)
     if pipes.returncode != 0:
-        raise CalledProcessError(
-            pipes.returncode,
-            args,
-            namedtuple('Output', ['stdout', 'stderr'])(stdout, stderr))
-    return stdout
+        output = namedtuple('Output', ['stdout', 'stderr'])(
+            six.ensure_binary(stdout),
+            six.ensure_binary(stderr)))
+        raise CalledProcessError(pipes.returncode, args, output)
+    return six.ensure_binary(stdout)
 
 
 class EndToEndTests(TestCase):
