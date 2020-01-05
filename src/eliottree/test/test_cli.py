@@ -59,6 +59,8 @@ def check_output(args, stdin=None):
     stderr in the `CalledProcessError` exception.
     """
     kwargs = {}
+    if six.PY3:
+        kwargs['encoding'] = 'utf-8'
     pipes = Popen(
         args,
         stdin=PIPE if stdin is not None else None,
