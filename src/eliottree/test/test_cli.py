@@ -61,7 +61,8 @@ def check_output(args, stdin=None):
     """
     kwargs = {}
     if six.PY3:
-        import sys, locale
+        import sys
+        import locale
         print('outside', 'getdefaultencoding', sys.getdefaultencoding(), 'stdout', sys.stdout.encoding, 'stderr', sys.stderr.encoding, 'stdin', sys.stdin.encoding, 'preferredencoding', locale.getpreferredencoding())
         kwargs['encoding'] = 'utf-8'
     pipes = Popen(
