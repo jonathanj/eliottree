@@ -1,8 +1,10 @@
 name: Publish package to PyPI
 
-on:
-  release:
-    types: [push]
+on: [push]
+
+#on:
+#  release:
+#    types: [published]
 
 jobs:
   build:
