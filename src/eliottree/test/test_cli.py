@@ -102,8 +102,6 @@ class EndToEndTests(TestCase):
         with NamedTemporaryFile() as f:
             f.write(dump_json_bytes(message_task))
             f.flush()
-            print(check_output(["eliot-tree", f.name]).decode('utf-8'))
-            print(rendered_message_task.decode('utf-8'))
             self.assertEqual(check_output(["eliot-tree", f.name]),
                              rendered_message_task)
 
