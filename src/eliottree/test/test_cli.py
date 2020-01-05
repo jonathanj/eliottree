@@ -102,9 +102,7 @@ class EndToEndTests(TestCase):
             f.flush()
             with self.assertRaises(CalledProcessError) as m:
                 check_output(['eliot-tree', f.name])
-            print (m.exception.output)
             lines = m.exception.output.stderr.splitlines()
-            print os.linesep.join(lines)
             first_line = lines[0].decode('utf-8')
             second_line = lines[1].decode('utf-8')
             self.assertIn('JSON parse error', first_line)
