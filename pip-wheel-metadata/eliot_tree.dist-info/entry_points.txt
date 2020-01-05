@@ -1,0 +1,3 @@
+[console_scripts]
+eliot-tree = eliottree._cli:main
+

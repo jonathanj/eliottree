@@ -3,6 +3,7 @@ Tests for the command-line itself.
 """
 import os
 import six
+import sys
 import tempfile
 from collections import namedtuple
 from subprocess import PIPE, CalledProcessError, Popen
@@ -59,7 +60,7 @@ def check_output(args, stdin=None):
     stderr in the `CalledProcessError` exception.
     """
     kwargs = {}
-    if six.PY3:
+    if six.PY3 and sys.version_info.minor > 5:
         kwargs['encoding'] = 'utf-8'
     pipes = Popen(
         args,
