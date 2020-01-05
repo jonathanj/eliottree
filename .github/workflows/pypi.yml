@@ -1,10 +1,8 @@
 name: Publish package to PyPI
 
-on: [push]
-
-#on:
-#  release:
-#    types: [published]
+on:
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -29,4 +27,3 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
-        repository_url: https://test.pypi.org/legacy/
