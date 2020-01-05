@@ -14,10 +14,10 @@ if platform.system() == 'Windows':
     # using the Unicode codepage.
     # N.B. This _must_ happen before `colorama` because win_unicode_console
     # replaces stdin/stdout while colorama wraps them.
-    import win_unicode_console
+    import win_unicode_console  # noqa: E402
     win_unicode_console.enable()
     # Initialise color support for Windows terminals.
-    import colorama
+    import colorama  # noqa: E402
     colorama.init()
 
 __version__ = '17.1.0'
@@ -30,6 +30,6 @@ __all__ = [
     'EliotParseError', 'JSONParseError',
 ]
 
-from ._version import get_versions
+from ._version import get_versions  # noqa: E402
 __version__ = get_versions()['version']
 del get_versions
