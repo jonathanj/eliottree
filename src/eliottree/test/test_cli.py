@@ -5,7 +5,6 @@ import os
 import six
 import tempfile
 from collections import namedtuple
-from pprint import pformat
 from subprocess import PIPE, CalledProcessError, Popen
 from unittest import TestCase
 
@@ -59,12 +58,16 @@ def check_output(args, stdin=None):
     Similar to `subprocess.check_output` but include separated stdout and
     stderr in the `CalledProcessError` exception.
     """
+    kwargs = {}
+    if six.PY3:
+        kwargs['encoding'] = 'utf-8'
     pipes = Popen(
         args,
         stdin=PIPE if stdin is not None else None,
         stdout=PIPE,
         stderr=PIPE,
-        universal_newlines=True)
+        universal_newlines=True,
+        **kwargs)
     stdout, stderr = pipes.communicate(
         six.ensure_str(stdin) if stdin is not None else None)
     if pipes.returncode != 0:
@@ -137,7 +140,3 @@ class EndToEndTests(TestCase):
             self.assertIn('Eliot message parse error', first_line)
             self.assertIn(f.name, first_line)
             self.assertIn('line 1', first_line)
-            formatted = pformat(missing_uuid_task).encode('utf-8').splitlines()
-            self.assertEqual(
-                lines[1:len(formatted) + 1],
-                formatted)
