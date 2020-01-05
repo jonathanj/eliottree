@@ -39,6 +39,7 @@ class NamedTemporaryFile(object):
         self._fd = open(self.name, 'wb+')
         self.write = self._fd.write
         self.flush = self._fd.flush
+        self.seek = self._fd.seek
 
     def close(self):
         self._fd.close()
@@ -70,7 +71,11 @@ def check_output(args, stdin=None):
         **kwargs)
     stdout, stderr = pipes.communicate(
         six.ensure_str(stdin) if stdin is not None else None)
-    if pipes.returncode != 0:
+    print('::STDOUT::')
+    print(stdout)
+    print('::STDERR::')
+    print(stderr)           
+    if pipes.returncode != 0:     
         output = namedtuple('Output', ['stdout', 'stderr'])(
             six.ensure_binary(stdout),
             six.ensure_binary(stderr))
@@ -116,10 +121,6 @@ class EndToEndTests(TestCase):
             f.flush()
             with self.assertRaises(CalledProcessError) as m:
                 check_output(['eliot-tree', '--color=never', f.name])
-            print('stdout')
-            print(m.exception.output.stdout)
-            print('stderr')
-            print(m.exception.output.stderr)
             lines = m.exception.output.stderr.splitlines()
             first_line = lines[0].decode('utf-8')
             second_line = lines[1].decode('utf-8')

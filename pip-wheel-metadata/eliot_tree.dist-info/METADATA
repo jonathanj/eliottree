@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: eliot-tree
-Version: 18.1.1+15.g01ff310
+Version: 18.1.1+23.g5af7ab0
 Summary: Render Eliot logs as an ASCII tree
 Home-page: https://github.com/jonathanj/eliottree
 Author: Jonathan Jacobs
