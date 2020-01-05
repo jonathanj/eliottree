@@ -19,8 +19,8 @@ def text_writer(fd):
     """
     File writer that accepts Unicode to write.
     """
-    #if PY3:
-    #    return fd
+    if PY3:
+       return fd
     return codecs.getwriter('utf-8')(fd)
 
 
@@ -203,7 +203,7 @@ def main():
             field_limit=args.field_limit,
             human_readable=args.human_readable)
     except JSONParseError as e:
-        stderr.write('JSON parse error, file {}, line {}:\n{}\n\n'.format(
+        stderr.write(u'JSON parse error, file {}, line {}:\n{}\n\n'.format(
             e.file_name,
             e.line_number,
             e.line))
@@ -212,7 +212,7 @@ def main():
         file_name, line_number = inventory.get(
             id(e.message_dict), (u'<unknown>', u'<unknown>'))
         stderr.write(
-            'Eliot message parse error, file {}, line {}:\n{}\n\n'.format(
+            u'Eliot message parse error, file {}, line {}:\n{}\n\n'.format(
                 file_name,
                 line_number,
                 pformat(e.message_dict)))

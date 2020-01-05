@@ -61,20 +61,24 @@ def check_output(args, stdin=None):
     """
     kwargs = {}
     if six.PY3:
+        import sys, locale
+        print('outside', 'getdefaultencoding', sys.getdefaultencoding(), 'stdout', sys.stdout.encoding, 'stderr', sys.stderr.encoding, 'stdin', sys.stdin.encoding, 'preferredencoding', locale.getpreferredencoding())
         kwargs['encoding'] = 'utf-8'
     pipes = Popen(
         args,
         stdin=PIPE if stdin is not None else None,
         stdout=PIPE,
         stderr=PIPE,
-        universal_newlines=True,
+        #universal_newlines=True,
         **kwargs)
+    #pipes.stdout.encoding = 'utf-8'
+    #pipes.stderr.encoding = 'utf-8'
     stdout, stderr = pipes.communicate(
         six.ensure_str(stdin) if stdin is not None else None)
     print('::STDOUT::')
-    print(stdout)
+    print(six.ensure_text(stdout))
     print('::STDERR::')
-    print(stderr)
+    print(six.ensure_text(stderr))
     if pipes.returncode != 0:
         output = namedtuple('Output', ['stdout', 'stderr'])(
             six.ensure_binary(stdout),
@@ -87,6 +91,11 @@ class EndToEndTests(TestCase):
     """
     Tests that actually run the command-line tool.
     """
+    #def test_log(self):
+    #    import sys, locale
+    #    print(sys.getdefaultencoding(), sys.stdout.encoding, sys.stderr.encoding, sys.stdin.encoding, locale.getpreferredencoding())
+    #    assert False
+
     def test_stdin(self):
         """
         ``eliot-tree`` can read and render JSON messages from stdin when no

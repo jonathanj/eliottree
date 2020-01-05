@@ -12,7 +12,7 @@ jobs:
         #python-version: [2.7, 3.6, 3.7]
         os: [windows-latest]
         python-version: [3.6]
-    
+
     steps:
     - uses: actions/checkout@v1
     - name: Set up Python ${{ matrix.python-version }}
@@ -29,10 +29,11 @@ jobs:
         # stop the build if there are Python syntax errors or undefined names
         flake8 src setup.py --show-source --statistics
     - name: Test with pytest
+      env:
+        PYTHONIOENCODING: utf-8
       run: |
         pip install pytest
         pip install pytest-cov
-        chcp
         pytest --cov=./ --cov-report=xml
     - uses: codecov/codecov-action@v1.0.5
       with:
