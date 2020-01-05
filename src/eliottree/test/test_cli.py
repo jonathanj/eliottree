@@ -20,13 +20,22 @@ rendered_message_task = (
 ).format(linesep=os.linesep).encode('utf-8')
 
 
+def bytes_hex(a):
+    """
+    Encode `bytes` into hex on Python 2 or 3.
+    """
+    if hasattr(a, 'hex'):
+        return a.hex()
+    return a.encode('hex')
+
+
 class NamedTemporaryFile(object):
     """
     Similar to `tempfile.NamedTemporaryFile` except less buggy and with a
     Python context manager interface.
     """
     def __init__(self):
-        self.name = os.path.join(tempfile.gettempdir(), os.urandom(24).encode('hex'))
+        self.name = os.path.join(tempfile.gettempdir(), bytes_hex(os.urandom(24)))
         self._fd = open(self.name, 'wb+')
         self.write = self._fd.write
         self.flush = self._fd.flush
