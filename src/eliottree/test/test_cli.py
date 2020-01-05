@@ -3,7 +3,6 @@ Tests for the command-line itself.
 """
 import os
 import six
-import sys
 import tempfile
 from collections import namedtuple
 from subprocess import PIPE, CalledProcessError, Popen
