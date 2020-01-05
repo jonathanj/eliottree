@@ -14,10 +14,10 @@ from eliottree.test.tasks import message_task, missing_uuid_task
 
 
 rendered_message_task = (
-    u'cdeb220d-7605-4d5f-8341-1a170222e308\n'
-    u'\u2514\u2500\u2500 twisted:log/1 2015-03-03 04:25:00\n'
-    u'    \u251c\u2500\u2500 error: False\n'
-    u'    \u2514\u2500\u2500 message: Main loop terminated.\n\n'
+    u'cdeb220d-7605-4d5f-8341-1a170222e308{linesep}'
+    u'\u2514\u2500\u2500 twisted:log/1 2015-03-03 04:25:00{linesep}'
+    u'    \u251c\u2500\u2500 error: False{linesep}'
+    u'    \u2514\u2500\u2500 message: Main loop terminated.{linesep}{linesep}'
 ).format(linesep=os.linesep).encode('utf-8')
 
 
@@ -60,23 +60,18 @@ def check_output(args, stdin=None):
     stderr in the `CalledProcessError` exception.
     """
     kwargs = {}
-    if six.PY3 and sys.version_info.minor > 5:
-        kwargs['encoding'] = 'utf-8'
     pipes = Popen(
         args,
         stdin=PIPE if stdin is not None else None,
         stdout=PIPE,
         stderr=PIPE,
-        universal_newlines=True,
         **kwargs)
     stdout, stderr = pipes.communicate(
-        six.ensure_str(stdin) if stdin is not None else None)
+        six.ensure_binary(stdin) if stdin is not None else None)
     if pipes.returncode != 0:
-        output = namedtuple('Output', ['stdout', 'stderr'])(
-            six.ensure_binary(stdout),
-            six.ensure_binary(stderr))
+        output = namedtuple('Output', ['stdout', 'stderr'])(stdout, stderr)
         raise CalledProcessError(pipes.returncode, args, output)
-    return six.ensure_binary(stdout)
+    return stdout
 
 
 class EndToEndTests(TestCase):
