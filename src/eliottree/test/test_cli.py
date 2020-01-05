@@ -49,22 +49,19 @@ def check_output(args, stdin=None):
     Similar to `subprocess.check_output` but include separated stdout and
     stderr in the `CalledProcessError` exception.
     """
-    try:
-        pipes = Popen(
+    pipes = Popen(
+        args,
+        stdin=PIPE if stdin is not None else None,
+        stdout=PIPE,
+        stderr=PIPE,
+        universal_newlines=True)
+    stdout, stderr = pipes.communicate(stdin)
+    if pipes.returncode != 0:
+        raise CalledProcessError(
+            pipes.returncode,
             args,
-            stdin=PIPE if stdin is not None else None,
-            stdout=PIPE,
-            stderr=PIPE,
-            universal_newlines=True)
-        stdout, stderr = pipes.communicate(stdin)
-        if pipes.returncode != 0:
-            raise CalledProcessError(
-                pipes.returncode,
-                args,
-                namedtuple('Output', ['stdout', 'stderr'])(stdout, stderr))
-        return stdout
-    finally:
-        pipes.kill()
+            namedtuple('Output', ['stdout', 'stderr'])(stdout, stderr))
+    return stdout
 
 
 class EndToEndTests(TestCase):
