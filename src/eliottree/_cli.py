@@ -19,8 +19,8 @@ def text_writer(fd):
     """
     File writer that accepts Unicode to write.
     """
-    if PY3:
-        return fd
+    #if PY3:
+    #    return fd
     return codecs.getwriter('utf-8')(fd)
 
 
