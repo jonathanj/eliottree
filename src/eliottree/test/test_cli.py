@@ -65,7 +65,8 @@ def check_output(args, stdin=None):
         stdout=PIPE,
         stderr=PIPE,
         universal_newlines=True)
-    stdout, stderr = pipes.communicate(stdin)
+    stdout, stderr = pipes.communicate(
+        six.ensure_str(stdin) if stdin is not None else None)
     if pipes.returncode != 0:
         output = namedtuple('Output', ['stdout', 'stderr'])(
             six.ensure_binary(stdout),
