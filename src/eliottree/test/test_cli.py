@@ -69,7 +69,7 @@ def check_output(args, stdin=None):
     if pipes.returncode != 0:
         output = namedtuple('Output', ['stdout', 'stderr'])(
             six.ensure_binary(stdout),
-            six.ensure_binary(stderr)))
+            six.ensure_binary(stderr))
         raise CalledProcessError(pipes.returncode, args, output)
     return six.ensure_binary(stdout)
 
