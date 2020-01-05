@@ -116,6 +116,10 @@ class EndToEndTests(TestCase):
             f.flush()
             with self.assertRaises(CalledProcessError) as m:
                 check_output(['eliot-tree', f.name])
+            print('stdout')
+            print(m.exception.output.stdout)
+            print('stderr')
+            print(m.exception.output.stderr)
             lines = m.exception.output.stderr.splitlines()
             first_line = lines[0].decode('utf-8')
             second_line = lines[1].decode('utf-8')
