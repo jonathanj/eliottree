@@ -791,7 +791,7 @@ class GetChildrenTests(TestCase):
 
     def test_written_message(self):
         """
-        The fields of `WrittenMessage`\s are their children. Fields can also be
+        The fields of `WrittenMessage`\\s are their children. Fields can also be
         ignored.
         """
         node = WrittenMessage.from_dict({u'a': 1, u'b': 2, u'c': 3})

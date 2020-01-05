@@ -195,9 +195,9 @@ def get_children(ignored_fields, node):
         return [node.root()]
     elif isinstance(node, WrittenAction):
         return filter(None,
-                      message_fields(node.start_message, ignored_fields) +
-                      list(node.children) +
-                      [node.end_message])
+                      (message_fields(node.start_message, ignored_fields)
+                       + list(node.children)
+                       + [node.end_message]))
     elif isinstance(node, WrittenMessage):
         return message_fields(node, ignored_fields)
     elif isinstance(node, tuple):
