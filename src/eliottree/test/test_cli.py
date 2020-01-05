@@ -69,7 +69,7 @@ def check_output(args, stdin=None):
         universal_newlines=True,
         **kwargs)
     stdout, stderr = pipes.communicate(
-        six.ensure_text(stdin) if stdin is not None else None)
+        six.ensure_str(stdin) if stdin is not None else None)
     if pipes.returncode != 0:
         output = namedtuple('Output', ['stdout', 'stderr'])(
             six.ensure_binary(stdout),
@@ -115,7 +115,7 @@ class EndToEndTests(TestCase):
             f.write(b'totally not valid JSON {')
             f.flush()
             with self.assertRaises(CalledProcessError) as m:
-                check_output(['eliot-tree', f.name])
+                check_output(['eliot-tree', '--color=never', f.name])
             print('stdout')
             print(m.exception.output.stdout)
             print('stderr')
