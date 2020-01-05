@@ -3,10 +3,9 @@ Tests for the command-line itself.
 """
 import os
 import tempfile
-import warnings
 from collections import namedtuple
 from pprint import pformat
-from subprocess import STDOUT, PIPE, CalledProcessError, check_output, Popen
+from subprocess import PIPE, CalledProcessError, Popen
 from unittest import TestCase
 
 from eliottree._compat import dump_json_bytes
@@ -26,7 +25,7 @@ class NamedTemporaryFile(object):
     Similar to `tempfile.NamedTemporaryFile` except less buggy and with a
     Python context manager interface.
     """
-    def __init__(self):    
+    def __init__(self):
         self.name = os.path.join(tempfile.gettempdir(), os.urandom(24).encode('hex'))
         self._fd = open(self.name, 'wb+')
         self.write = self._fd.write
