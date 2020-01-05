@@ -1,3 +1,5 @@
+import platform
+
 from eliottree._errors import EliotParseError, JSONParseError
 from eliottree._parse import tasks_from_iterable
 from eliottree._render import render_tasks
@@ -7,6 +9,16 @@ from eliottree.filter import (
 from eliottree.render import render_task_nodes
 from eliottree.tree import Tree
 
+if platform.system() == 'Windows':
+    # Initialise Unicode support for Windows terminals, even if they're not
+    # using the Unicode codepage.
+    # N.B. This _must_ happen before `colorama` because win_unicode_console
+    # replaces stdin/stdout while colorama wraps them.
+    import win_unicode_console
+    win_unicode_console.enable()
+    # Initialise color support for Windows terminals.
+    import colorama
+    colorama.init()
 
 __version__ = '17.1.0'
 

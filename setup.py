@@ -50,6 +50,8 @@ setup(
         'termcolor>=1.1.0',
         'toolz>=0.8.2',
         'eliot>=0.12.0',
+        'colorama>=0.4.3;platform_system=="Windows"',
+        'win-unicode-console>=0.5;platform_system=="Windows"',
     ],
     extras_require={
         'test': ['testtools>=1.8.0'],
