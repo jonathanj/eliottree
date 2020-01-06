@@ -6,9 +6,6 @@ from eliottree.filter import (
     filter_by_uuid)
 
 
-__version__ = '17.1.0'
-
-
 __all__ = [
     'filter_by_jmespath', 'filter_by_uuid', 'filter_by_start_date',
     'filter_by_end_date', 'render_tasks', 'tasks_from_iterable',
