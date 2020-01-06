@@ -92,7 +92,8 @@ def setup_platform(colorize):
             colorama.init()
 
 
-def display_tasks(tasks, color, ignored_fields, field_limit, human_readable, utc_timestamps):
+def display_tasks(tasks, color, colorize_tree, ignored_fields, field_limit,
+                  human_readable, utc_timestamps):
     """
     Render Eliot tasks, apply any command-line-specified behaviour and render
     the task trees to stdout.
@@ -114,6 +115,7 @@ def display_tasks(tasks, color, ignored_fields, field_limit, human_readable, utc
         field_limit=field_limit,
         human_readable=human_readable,
         colorize=colorize,
+        colorize_tree=colorize and colorize_tree,
         utc_timestamps=utc_timestamps)
 
 
@@ -163,6 +165,11 @@ def main():
                         dest='color',
                         help='''Color the output. Defaults based on whether
                         the output is a TTY.''')
+    parser.add_argument('--color-tree',
+                        action='store_true',
+                        default=False,
+                        dest='colorize_tree',
+                        help='''Color the tree output.''')
     parser.add_argument('-l', '--field-limit',
                         metavar='LENGTH',
                         type=int,
@@ -202,6 +209,7 @@ def main():
         display_tasks(
             tasks=tasks,
             color=args.color,
+            colorize_tree=args.colorize_tree,
             ignored_fields=args.ignored_fields,
             field_limit=args.field_limit,
             human_readable=args.human_readable,

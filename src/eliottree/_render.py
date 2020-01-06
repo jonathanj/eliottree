@@ -1,3 +1,4 @@
+import itertools
 import sys
 import traceback
 from functools import partial
@@ -7,6 +8,7 @@ from six import text_type
 from termcolor import colored
 from toolz import compose, excepts, identity
 from tree_format import format_tree
+from tree_format._text import Options
 
 from eliottree import format
 from eliottree._util import eliot_ns, format_namespace, is_namespace
@@ -39,6 +41,9 @@ class COLORS(object):
     error = Color('red', ['bold'])
     timestamp = Color('white', ['dark'])
     duration = Color('blue', ['dark'])
+    level0 = Color('white')
+    level1 = Color('red')
+    level2 = Color('green')
 
     def __init__(self, colored):
         self.colored = colored
@@ -224,9 +229,39 @@ def track_exceptions(f, caught, default=None):
     return excepts(Exception, f, _catch)
 
 
+class ColorizedOptions():
+    """
+    `Options` for `format_tree` that colorizes sub-trees.
+    """
+    def __init__(self, colors, options):
+        self._colors = itertools.cycle(colors)
+        self.col = colors[0]
+        self._options = options
+        self.NEWLINE = self._options.NEWLINE
+
+    @property
+    def VERTICAL(self):
+        return self.col(self._options.VERTICAL)
+
+    @property
+    def FORK(self):
+        return self.col(self._options.FORK)
+
+    @property
+    def LAST(self):
+        # XXX: I'm reasonably sure this is buggy and dependent on the depth of the tree being rendered, but I need to find a deeper tree to test that theory on.
+        self.col = next(self._colors)
+        return self.col(self._options.LAST)
+
+    @property
+    def HORIZONTAL(self):
+        return self.col(self._options.HORIZONTAL)
+
+
 def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
                  human_readable=False, colorize=False, write_err=None,
-                 format_node=format_node, format_value=None, utc_timestamps=True):
+                 format_node=format_node, format_value=None,
+                 utc_timestamps=True, colorize_tree=False):
     """
     Render Eliot tasks as an ASCII tree.
 
@@ -248,6 +283,7 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
     :type format_value: Callable[[Any], `text_type`]
     :param format_value: Callable to format a value.
     :param bool utc_timestamps: Format timestamps as UTC?
+    :param int colorize_tree: Colorizing the tree output?
     """
     if ignored_fields is None:
         ignored_fields = DEFAULT_IGNORED_KEYS
@@ -267,8 +303,15 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
         caught_exceptions,
         u'<node formatting exception>')
     _get_children = partial(get_children, ignored_fields)
+
+    def make_options():
+        options = Options()
+        if colorize_tree:
+            return ColorizedOptions([colors.level0, colors.level1, colors.level2], options)
+        return options
+
     for task in tasks:
-        write(format_tree(task, _format_node, _get_children))
+        write(format_tree(task, _format_node, _get_children, make_options()))
         write(u'\n')
 
     if write_err and caught_exceptions:
