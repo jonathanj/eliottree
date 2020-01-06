@@ -82,10 +82,10 @@ class DefaultValueFormatterTests(TestCase):
         now = 1433631432
         self.assertThat(
             format_value(now, eliot_ns(u'timestamp')),
-            ExactlyEquals(u'2015-06-06 22:57:12'))
+            ExactlyEquals(u'2015-06-06 22:57:12Z'))
         self.assertThat(
             format_value(str(now), eliot_ns(u'timestamp')),
-            ExactlyEquals(u'2015-06-06 22:57:12'))
+            ExactlyEquals(u'2015-06-06 22:57:12Z'))
 
     def test_timestamp_field_local(self):
         """
@@ -553,9 +553,9 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4\n'
                 u'\u2514\u2500\u2500 app:action/1 \u21d2 started '
-                u'2015-03-03 04:26:40 \u29d6 2.000s\n'
+                u'2015-03-03 04:26:40Z \u29d6 2.000s\n'
                 u'    \u2514\u2500\u2500 app:action/2 \u21d2 succeeded '
-                u'2015-03-03 04:26:42\n'
+                u'2015-03-03 04:26:42Z\n'
                 u'\n'))
 
     def test_multiline_field(self):
