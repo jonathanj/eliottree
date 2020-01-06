@@ -49,7 +49,7 @@ setup(
         'tree-format>=0.1.2',
         'termcolor>=1.1.0',
         'toolz>=0.8.2',
-        'eliot>=0.12.0',
+        'eliot>=1.6.0',
         'colorama>=0.4.3;platform_system=="Windows"',
         'win-unicode-console>=0.5;platform_system=="Windows"',
     ],
