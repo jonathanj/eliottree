@@ -92,7 +92,7 @@ def setup_platform(colorize):
             colorama.init()
 
 
-def display_tasks(tasks, color, ignored_fields, field_limit, human_readable):
+def display_tasks(tasks, color, ignored_fields, field_limit, human_readable, utc_timestamps):
     """
     Render Eliot tasks, apply any command-line-specified behaviour and render
     the task trees to stdout.
@@ -113,7 +113,8 @@ def display_tasks(tasks, color, ignored_fields, field_limit, human_readable):
         ignored_fields=set(ignored_fields) or None,
         field_limit=field_limit,
         human_readable=human_readable,
-        colorize=colorize)
+        colorize=colorize,
+        utc_timestamps=utc_timestamps)
 
 
 def _decode_command_line(value, encoding='utf-8'):
@@ -137,7 +138,7 @@ def main():
                         dest='task_uuid',
                         metavar='UUID',
                         type=_decode_command_line,
-                        help='''Select a specific task by UUID''')
+                        help='''Select a specific task by UUID.''')
     parser.add_argument('-i', '--ignore-task-key',
                         action='append',
                         default=[],
@@ -151,7 +152,11 @@ def main():
                         action='store_false',
                         dest='human_readable',
                         help='''Do not format some task values (such as
-                        UTC timestamps) as human-readable''')
+                        UTC timestamps) as human-readable.''')
+    parser.add_argument('--local-timezone',
+                        action='store_false',
+                        dest='utc_timestamps',
+                        help='''Convert timestamps to the local timezone.''')
     parser.add_argument('--color',
                         default='auto',
                         choices=['always', 'auto', 'never'],
@@ -199,7 +204,8 @@ def main():
             color=args.color,
             ignored_fields=args.ignored_fields,
             field_limit=args.field_limit,
-            human_readable=args.human_readable)
+            human_readable=args.human_readable,
+            utc_timestamps=args.utc_timestamps)
     except JSONParseError as e:
         stderr.write(u'JSON parse error, file {}, line {}:\n{}\n\n'.format(
             e.file_name,
