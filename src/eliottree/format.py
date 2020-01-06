@@ -80,7 +80,7 @@ def timestamp(include_microsecond=True, utc_timestamps=True):
         result = result.isoformat(' ')
         if isinstance(result, binary_type):
             result = result.decode('ascii')
-        return result
+        return result + (u'Z' if utc_timestamps else u'')
     return _format_timestamp_value
 
 

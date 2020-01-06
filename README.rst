@@ -97,6 +97,7 @@ Usage from the command-line
                            standard keys.
      --raw                 Do not format some task values (such as UTC
                            timestamps) as human-readable
+     --local-timezone      Convert timestamps to the local timezone.
      --color {always,auto,never}
                            Color the output. Defaults based on whether the output
                            is a TTY.

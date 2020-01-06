@@ -153,10 +153,10 @@ def main():
                         dest='human_readable',
                         help='''Do not format some task values (such as
                         UTC timestamps) as human-readable.''')
-    parser.add_argument('--local-time',
+    parser.add_argument('--local-timezone',
                         action='store_false',
                         dest='utc_timestamps',
-                        help='''Convert timestamps to local time.''')
+                        help='''Convert timestamps to the local timezone.''')
     parser.add_argument('--color',
                         default='auto',
                         choices=['always', 'auto', 'never'],
