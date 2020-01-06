@@ -43,13 +43,15 @@ setup(
         'Programming Language :: Python',
     ],
     install_requires=[
-        'six>=1.9.0',
+        'six>=1.13.0',
         'jmespath>=0.7.1',
         'iso8601>=0.1.10',
         'tree-format>=0.1.2',
         'termcolor>=1.1.0',
         'toolz>=0.8.2',
         'eliot>=0.12.0',
+        'colorama>=0.4.3;platform_system=="Windows"',
+        'win-unicode-console>=0.5;platform_system=="Windows"',
     ],
     extras_require={
         'test': ['testtools>=1.8.0'],

@@ -8,9 +8,9 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest]
         python-version: [2.7, 3.5, 3.6, 3.7]
-    
+
     steps:
     - uses: actions/checkout@v1
     - name: Set up Python ${{ matrix.python-version }}
@@ -26,9 +26,9 @@ jobs:
         pip install flake8
         # stop the build if there are Python syntax errors or undefined names
         flake8 src setup.py --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 src setup.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
+      env:
+        PYTHONIOENCODING: utf-8
       run: |
         pip install pytest
         pip install pytest-cov

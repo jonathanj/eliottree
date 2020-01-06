@@ -1,6 +1,7 @@
 import argparse
 import codecs
 import json
+import platform
 import sys
 from pprint import pformat
 
@@ -71,17 +72,40 @@ def parse_messages(files=None, select=None, task_uuid=None, start=None,
         filter(compose(*filter_funcs()), _parse(files, inventory)))
 
 
+def setup_platform(colorize):
+    """
+    Set up any platform specifics for console output etc.
+    """
+    if platform.system() == 'Windows':
+        # Initialise Unicode support for Windows terminals, even if they're not
+        # using the Unicode codepage.
+        # N.B. This _must_ happen before `colorama` because win_unicode_console
+        # replaces stdin/stdout while colorama wraps them.
+        import win_unicode_console  # noqa: E402
+        import warnings  # noqa: E402
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=RuntimeWarning)
+            win_unicode_console.enable()
+        if colorize:
+            # Initialise color support for Windows terminals.
+            import colorama  # noqa: E402
+            colorama.init()
+
+
 def display_tasks(tasks, color, ignored_fields, field_limit, human_readable):
     """
     Render Eliot tasks, apply any command-line-specified behaviour and render
     the task trees to stdout.
     """
-    write = text_writer(sys.stdout).write
-    write_err = text_writer(sys.stderr).write
     if color == 'auto':
         colorize = sys.stdout.isatty()
     else:
         colorize = color == 'always'
+
+    setup_platform(colorize=colorize)
+    write = text_writer(sys.stdout).write
+    write_err = text_writer(sys.stderr).write
+
     render_tasks(
         write=write,
         write_err=write_err,
@@ -177,7 +201,7 @@ def main():
             field_limit=args.field_limit,
             human_readable=args.human_readable)
     except JSONParseError as e:
-        stderr.write('JSON parse error, file {}, line {}:\n{}\n\n'.format(
+        stderr.write(u'JSON parse error, file {}, line {}:\n{}\n\n'.format(
             e.file_name,
             e.line_number,
             e.line))
@@ -186,7 +210,7 @@ def main():
         file_name, line_number = inventory.get(
             id(e.message_dict), (u'<unknown>', u'<unknown>'))
         stderr.write(
-            'Eliot message parse error, file {}, line {}:\n{}\n\n'.format(
+            u'Eliot message parse error, file {}, line {}:\n{}\n\n'.format(
                 file_name,
                 line_number,
                 pformat(e.message_dict)))
