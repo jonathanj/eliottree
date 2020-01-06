@@ -77,8 +77,6 @@ def setup_platform(colorize):
     Set up any platform specifics for console output etc.
     """
     if platform.system() == 'Windows':
-        import codecs  # noqa: E402
-        codecs.register(lambda name: codecs.lookup('utf-8') if name == 'cp65001' else None)
         # Initialise Unicode support for Windows terminals, even if they're not
         # using the Unicode codepage.
         # N.B. This _must_ happen before `colorama` because win_unicode_console
