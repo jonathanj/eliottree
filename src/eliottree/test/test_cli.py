@@ -35,6 +35,7 @@ class NamedTemporaryFile(object):
     Python context manager interface.
     """
     def __init__(self):
+        # See https://stackoverflow.com/a/58955530/81065
         self.name = os.path.join(tempfile.gettempdir(), bytes_hex(os.urandom(24)))
         self._fd = open(self.name, 'wb+')
         self.write = self._fd.write
@@ -60,8 +61,6 @@ def check_output(args, stdin=None):
     stderr in the `CalledProcessError` exception.
     """
     kwargs = {}
-    # if six.PY3:
-    #     kwargs['encoding'] = 'utf-8'
     pipes = Popen(
         args,
         stdin=PIPE if stdin is not None else None,
@@ -70,10 +69,6 @@ def check_output(args, stdin=None):
         **kwargs)
     stdout, stderr = pipes.communicate(
         six.ensure_binary(stdin) if stdin is not None else None)
-    print('::STDOUT::')
-    print(six.ensure_text(stdout))
-    print('::STDERR::')
-    print(six.ensure_text(stderr))
     if pipes.returncode != 0:
         output = namedtuple('Output', ['stdout', 'stderr'])(
             six.ensure_binary(stdout),
@@ -86,11 +81,6 @@ class EndToEndTests(TestCase):
     """
     Tests that actually run the command-line tool.
     """
-    #def test_log(self):
-    #    import sys, locale
-    #    print(sys.getdefaultencoding(), sys.stdout.encoding, sys.stderr.encoding, sys.stdin.encoding, locale.getpreferredencoding())
-    #    assert False
-
     def test_stdin(self):
         """
         ``eliot-tree`` can read and render JSON messages from stdin when no
