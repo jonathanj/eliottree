@@ -17,7 +17,7 @@ rendered_message_task = (
     u'\u2514\u2500\u2500 twisted:log/1 2015-03-03 04:25:00\n'
     u'    \u251c\u2500\u2500 error: False\n'
     u'    \u2514\u2500\u2500 message: Main loop terminated.\n\n'
-).replace('\n', '\n' if six.PY3 else os.linesep).encode('utf-8')
+).replace('\n', os.linesep).encode('utf-8')
 
 
 def bytes_hex(a):
