@@ -1,4 +1,4 @@
-from eliot._message import WrittenMessage
+from eliot.parse import WrittenMessage
 from six import BytesIO, StringIO, text_type
 from termcolor import colored
 from testtools import ExpectedException, TestCase

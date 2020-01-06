@@ -2,9 +2,7 @@ import sys
 import traceback
 from functools import partial
 
-from eliot._action import WrittenAction
-from eliot._message import WrittenMessage
-from eliot._parse import Task
+from eliot.parse import WrittenAction, WrittenMessage, Task
 from six import text_type
 from termcolor import colored
 from toolz import compose, excepts, identity
@@ -131,9 +129,9 @@ def format_node(format_value, colors, node):
     Format a node for display purposes.
 
     Different representations exist for the various types of node:
-        - `eliot._parse.Task`: A task UUID.
-        - `eliot._action.WrittenAction`: An action's type, level and status.
-        - `eliot._message.WrittenMessage`: A message's type and level.
+        - `eliot.parse.Task`: A task UUID.
+        - `eliot.parse.WrittenAction`: An action's type, level and status.
+        - `eliot.parse.WrittenMessage`: A message's type and level.
         - ``tuple``: A field name and value.
     """
     if isinstance(node, Task):
@@ -185,10 +183,10 @@ def get_children(ignored_fields, node):
     Retrieve the child nodes for a node.
 
     The various types of node have different concepts of children:
-        - `eliot._parse.Task`: The root ``WrittenAction``.
-        - `eliot._action.WrittenAction`: The start message fields, child
+        - `eliot.parse.Task`: The root ``WrittenAction``.
+        - `eliot.parse.WrittenAction`: The start message fields, child
           ``WrittenAction`` or ``WrittenMessage``s, and end ``WrittenMessage``.
-        - `eliot._message.WrittenMessage`: Message fields.
+        - `eliot.parse.WrittenMessage`: Message fields.
         - ``tuple``: Contained values for `dict` and `list` types.
     """
     if isinstance(node, Task):

@@ -1,6 +1,6 @@
 import sys
 
-from eliot._parse import Parser
+from eliot.parse import Parser
 
 from eliottree._errors import EliotParseError
 
