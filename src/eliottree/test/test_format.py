@@ -1,3 +1,4 @@
+import time
 from testtools import TestCase
 from testtools.matchers import Is
 
@@ -98,6 +99,15 @@ class TimestampTests(TestCase):
         self.assertThat(
             format.timestamp()(1433631432.0),
             ExactlyEquals(u'2015-06-06 22:57:12'))
+
+    def test_local(self):
+        """
+        Timestamps can be converted to local time.
+        """
+        timestamp = 1433631432.0
+        utc = format.timestamp(utc_timestamps=True)(timestamp)
+        local = format.timestamp(utc_timestamps=False)(timestamp + time.timezone)
+        self.assertThat(utc, ExactlyEquals(local))
 
 
 class AnythingTests(TestCase):

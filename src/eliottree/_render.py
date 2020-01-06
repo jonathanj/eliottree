@@ -51,7 +51,12 @@ def _no_color(text, *a, **kw):
     return text
 
 
-def _default_value_formatter(human_readable, field_limit, encoding='utf-8'):
+def _default_value_formatter(
+        human_readable,
+        field_limit,
+        utc_timestamps=True,
+        encoding='utf-8',
+):
     """
     Create a value formatter based on several user-specified options.
     """
@@ -59,7 +64,8 @@ def _default_value_formatter(human_readable, field_limit, encoding='utf-8'):
     if human_readable:
         fields = {
             eliot_ns(u'timestamp'): format.timestamp(
-                include_microsecond=False),
+                include_microsecond=False,
+                utc_timestamps=utc_timestamps),
             eliot_ns(u'duration'): format.duration(),
         }
     return compose(
@@ -220,7 +226,7 @@ def track_exceptions(f, caught, default=None):
 
 def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
                  human_readable=False, colorize=False, write_err=None,
-                 format_node=format_node, format_value=None):
+                 format_node=format_node, format_value=None, utc_timestamps=True):
     """
     Render Eliot tasks as an ASCII tree.
 
@@ -241,6 +247,7 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
     :param format_node: See `format_node`.
     :type format_value: Callable[[Any], `text_type`]
     :param format_value: Callable to format a value.
+    :param bool utc_timestamps: Format timestamps as UTC?
     """
     if ignored_fields is None:
         ignored_fields = DEFAULT_IGNORED_KEYS
@@ -249,7 +256,8 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
     if format_value is None:
         format_value = _default_value_formatter(
             human_readable=human_readable,
-            field_limit=field_limit)
+            field_limit=field_limit,
+            utc_timestamps=utc_timestamps)
     _format_value = track_exceptions(
         format_value,
         caught_exceptions,

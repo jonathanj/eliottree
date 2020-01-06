@@ -66,12 +66,15 @@ def fields(format_mapping):
     return _format_field_value
 
 
-def timestamp(include_microsecond=True):
+def timestamp(include_microsecond=True, utc_timestamps=True):
     """
     Create a formatter for POSIX timestamp values.
     """
     def _format_timestamp_value(value, field_name=None):
-        result = datetime.utcfromtimestamp(float(value))
+        from_timestamp = (
+            datetime.utcfromtimestamp
+            if utc_timestamps else datetime.fromtimestamp)
+        result = from_timestamp(float(value))
         if not include_microsecond:
             result = result.replace(microsecond=0)
         result = result.isoformat(' ')
