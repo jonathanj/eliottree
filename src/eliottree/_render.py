@@ -7,10 +7,9 @@ from eliot.parse import WrittenAction, WrittenMessage, Task
 from six import text_type
 from termcolor import colored
 from toolz import compose, excepts, identity
-from tree_format import format_tree
-from tree_format._text import Options
 
 from eliottree import format
+from eliottree.tree_format import format_tree, Options, ASCII_OPTIONS
 from eliottree._util import eliot_ns, format_namespace, is_namespace
 
 
