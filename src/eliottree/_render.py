@@ -1,4 +1,3 @@
-import itertools
 import sys
 import traceback
 from functools import partial
@@ -40,9 +39,10 @@ class COLORS(object):
     error = Color('red', ['bold'])
     timestamp = Color('white', ['dark'])
     duration = Color('blue', ['dark'])
-    level0 = Color('white')
-    level1 = Color('red')
-    level2 = Color('green')
+    tree_failed = Color('red', ['dark'])
+    tree_color0 = Color('white', ['dark'])
+    tree_color1 = Color('blue', ['dark'])
+    tree_color2 = Color('magenta', ['dark'])
 
     def __init__(self, colored):
         self.colored = colored
@@ -232,29 +232,20 @@ class ColorizedOptions():
     """
     `Options` for `format_tree` that colorizes sub-trees.
     """
-    def __init__(self, colors, options):
-        self._colors = itertools.cycle(colors)
-        self.col = colors[0]
-        self._options = options
-        self.NEWLINE = self._options.NEWLINE
+    def __init__(self, failed_color, depth_colors, options):
+        self.failed_color = failed_color
+        self.depth_colors = list(depth_colors)
+        self.options = options
 
-    @property
-    def VERTICAL(self):
-        return self.col(self._options.VERTICAL)
+    def __getattr__(self, name):
+        return getattr(self.options, name)
 
-    @property
-    def FORK(self):
-        return self.col(self._options.FORK)
-
-    @property
-    def LAST(self):
-        # XXX: I'm reasonably sure this is buggy and dependent on the depth of the tree being rendered, but I need to find a deeper tree to test that theory on.
-        self.col = next(self._colors)
-        return self.col(self._options.LAST)
-
-    @property
-    def HORIZONTAL(self):
-        return self.col(self._options.HORIZONTAL)
+    def color(self, node, depth):
+        if isinstance(node, WrittenAction):
+            end_message = node.end_message
+            if end_message.contents.action_status == u'failed':
+                return self.failed_color
+        return self.depth_colors[depth % len(self.depth_colors)]
 
 
 def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
@@ -310,7 +301,10 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
         else:
             options = Options()
         if colorize_tree:
-            return ColorizedOptions([colors.level0, colors.level1, colors.level2], options)
+            return ColorizedOptions(
+                failed_color=colors.tree_failed,
+                depth_colors=[colors.tree_color0, colors.tree_color1, colors.tree_color2],
+                options=options)
         return options
 
     for task in tasks:
