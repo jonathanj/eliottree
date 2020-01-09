@@ -77,10 +77,10 @@ Usage from the command-line
 .. code-block::
 
    $ eliot-tree
-   usage: eliot-tree [-h] [-u UUID] [-i KEY] [--raw]
-                     [--color {always,auto,never}] [--no-colorize] [-l LENGTH]
-                     [--select QUERY] [--start START] [--end END]
-                     [FILE [FILE ...]]
+   usage: eliot-tree [-h] [-u UUID] [-i KEY] [--raw] [--local-timezone]
+                  [--color {always,auto,never}] [--ascii] [--no-color-tree]
+                  [-l LENGTH] [--select QUERY] [--start START] [--end END]
+                  [FILE [FILE ...]]
 
    Display an Eliot log as a tree of tasks.
 
@@ -90,17 +90,19 @@ Usage from the command-line
    optional arguments:
      -h, --help            show this help message and exit
      -u UUID, --task-uuid UUID
-                           Select a specific task by UUID
+                           Select a specific task by UUID.
      -i KEY, --ignore-task-key KEY
                            Ignore a task key, use multiple times to ignore
                            multiple keys. Defaults to ignoring most Eliot
                            standard keys.
      --raw                 Do not format some task values (such as UTC
-                           timestamps) as human-readable
+                           timestamps) as human-readable.
      --local-timezone      Convert timestamps to the local timezone.
      --color {always,auto,never}
                            Color the output. Defaults based on whether the output
                            is a TTY.
+     --ascii               Use ASCII for tree drawing characters.
+     --no-color-tree       Do not color the tree lines.
      -l LENGTH, --field-limit LENGTH
                            Limit the length of field values to LENGTH or a
                            newline, whichever comes first. Use a length of 0 to
