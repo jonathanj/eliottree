@@ -105,9 +105,7 @@ class TestFormatTree(TestCase):
             output,
             DocTestMatches(
                 ACCEPTANCE_OUTPUT,
-                doctest.ELLIPSIS |
-                doctest.NORMALIZE_WHITESPACE |
-                doctest.REPORT_NDIFF))
+                doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE | doctest.REPORT_NDIFF))
 
     def test_newlines(self):
         tree = (
