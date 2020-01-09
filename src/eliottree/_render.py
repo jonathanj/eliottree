@@ -260,7 +260,7 @@ class ColorizedOptions():
 def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
                  human_readable=False, colorize=False, write_err=None,
                  format_node=format_node, format_value=None,
-                 utc_timestamps=True, colorize_tree=False):
+                 utc_timestamps=True, colorize_tree=False, ascii=False):
     """
     Render Eliot tasks as an ASCII tree.
 
@@ -283,6 +283,7 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
     :param format_value: Callable to format a value.
     :param bool utc_timestamps: Format timestamps as UTC?
     :param int colorize_tree: Colorizing the tree output?
+    :param bool ascii: Render the tree as plain ASCII instead of Unicode?
     """
     if ignored_fields is None:
         ignored_fields = DEFAULT_IGNORED_KEYS
@@ -304,7 +305,10 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
     _get_children = partial(get_children, ignored_fields)
 
     def make_options():
-        options = Options()
+        if ascii:
+            options = ASCII_OPTIONS
+        else:
+            options = Options()
         if colorize_tree:
             return ColorizedOptions([colors.level0, colors.level1, colors.level2], options)
         return options
