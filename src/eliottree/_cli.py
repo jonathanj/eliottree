@@ -171,8 +171,11 @@ def main():
                         default=False,
                         dest='ascii',
                         help='''Use ASCII for tree drawing characters.''')
+    parser.add_argument('--no-color-tree',
+                        action='store_false',
+                        default=True,
                         dest='colorize_tree',
-                        help='''Color the tree output.''')
+                        help='''Do not color the tree lines.''')
     parser.add_argument('-l', '--field-limit',
                         metavar='LENGTH',
                         type=int,
