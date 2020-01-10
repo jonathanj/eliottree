@@ -6,9 +6,9 @@ from eliot.parse import WrittenAction, WrittenMessage, Task
 from six import text_type
 from termcolor import colored
 from toolz import compose, excepts, identity
-from tree_format import format_tree
 
 from eliottree import format
+from eliottree.tree_format import format_tree, Options, ASCII_OPTIONS
 from eliottree._util import eliot_ns, format_namespace, is_namespace
 
 
@@ -39,6 +39,10 @@ class COLORS(object):
     error = Color('red', ['bold'])
     timestamp = Color('white', ['dark'])
     duration = Color('blue', ['dark'])
+    tree_failed = Color('red', ['dark'])
+    tree_color0 = Color('white', ['dark'])
+    tree_color1 = Color('blue', ['dark'])
+    tree_color2 = Color('magenta', ['dark'])
 
     def __init__(self, colored):
         self.colored = colored
@@ -224,9 +228,30 @@ def track_exceptions(f, caught, default=None):
     return excepts(Exception, f, _catch)
 
 
+class ColorizedOptions():
+    """
+    `Options` for `format_tree` that colorizes sub-trees.
+    """
+    def __init__(self, failed_color, depth_colors, options):
+        self.failed_color = failed_color
+        self.depth_colors = list(depth_colors)
+        self.options = options
+
+    def __getattr__(self, name):
+        return getattr(self.options, name)
+
+    def color(self, node, depth):
+        if isinstance(node, WrittenAction):
+            end_message = node.end_message
+            if end_message.contents.action_status == u'failed':
+                return self.failed_color
+        return self.depth_colors[depth % len(self.depth_colors)]
+
+
 def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
                  human_readable=False, colorize=False, write_err=None,
-                 format_node=format_node, format_value=None, utc_timestamps=True):
+                 format_node=format_node, format_value=None,
+                 utc_timestamps=True, colorize_tree=False, ascii=False):
     """
     Render Eliot tasks as an ASCII tree.
 
@@ -248,6 +273,8 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
     :type format_value: Callable[[Any], `text_type`]
     :param format_value: Callable to format a value.
     :param bool utc_timestamps: Format timestamps as UTC?
+    :param int colorize_tree: Colorizing the tree output?
+    :param bool ascii: Render the tree as plain ASCII instead of Unicode?
     """
     if ignored_fields is None:
         ignored_fields = DEFAULT_IGNORED_KEYS
@@ -267,8 +294,21 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
         caught_exceptions,
         u'<node formatting exception>')
     _get_children = partial(get_children, ignored_fields)
+
+    def make_options():
+        if ascii:
+            options = ASCII_OPTIONS
+        else:
+            options = Options()
+        if colorize_tree:
+            return ColorizedOptions(
+                failed_color=colors.tree_failed,
+                depth_colors=[colors.tree_color0, colors.tree_color1, colors.tree_color2],
+                options=options)
+        return options
+
     for task in tasks:
-        write(format_tree(task, _format_node, _get_children))
+        write(format_tree(task, _format_node, _get_children, make_options()))
         write(u'\n')
 
     if write_err and caught_exceptions:

@@ -1,0 +1,1 @@
+Colorize tree lines by default, use `--no-color-tree` to disable the feature. Tree lines normally cycle through several colors, however the lines of failed actions will be colored in a way that differentiates them.

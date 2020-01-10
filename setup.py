@@ -46,7 +46,6 @@ setup(
         'six>=1.13.0',
         'jmespath>=0.7.1',
         'iso8601>=0.1.10',
-        'tree-format>=0.1.2',
         'termcolor>=1.1.0',
         'toolz>=0.8.2',
         'eliot>=1.6.0',
