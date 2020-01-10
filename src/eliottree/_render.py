@@ -193,7 +193,7 @@ def track_exceptions(f, caught, default=None):
     return excepts(Exception, f, _catch)
 
 
-class ColorizedOptions():
+class ColorizedOptions(object):
     """
     `Options` for `format_tree` that colorizes sub-trees.
     """

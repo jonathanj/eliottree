@@ -9,7 +9,7 @@ def color_factory(colored):
     return _color
 
 
-class Theme():
+class Theme(object):
     """
     Theme base class.
     """
