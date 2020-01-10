@@ -78,9 +78,10 @@ Usage from the command-line
 
    $ eliot-tree
    usage: eliot-tree [-h] [-u UUID] [-i KEY] [--raw] [--local-timezone]
-                  [--color {always,auto,never}] [--ascii] [--no-color-tree]
-                  [-l LENGTH] [--select QUERY] [--start START] [--end END]
-                  [FILE [FILE ...]]
+                     [--color {always,auto,never}] [--ascii] [--no-color-tree]
+                     [--theme {auto,dark,light}] [-l LENGTH] [--select QUERY]
+                     [--start START] [--end END]
+                     [FILE [FILE ...]]
 
    Display an Eliot log as a tree of tasks.
 
@@ -103,6 +104,8 @@ Usage from the command-line
                            is a TTY.
      --ascii               Use ASCII for tree drawing characters.
      --no-color-tree       Do not color the tree lines.
+     --theme {auto,dark,light}
+                           Select a color theme to use.
      -l LENGTH, --field-limit LENGTH
                            Limit the length of field values to LENGTH or a
                            newline, whichever comes first. Use a length of 0 to
