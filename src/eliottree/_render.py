@@ -4,12 +4,12 @@ from functools import partial
 
 from eliot.parse import WrittenAction, WrittenMessage, Task
 from six import text_type
-from termcolor import colored
 from toolz import compose, excepts, identity
 
 from eliottree import format
 from eliottree.tree_format import format_tree, Options, ASCII_OPTIONS
 from eliottree._util import eliot_ns, format_namespace, is_namespace
+from eliottree._theme import get_theme
 
 
 RIGHT_DOUBLE_ARROW = u'\N{RIGHTWARDS DOUBLE ARROW}'
@@ -18,41 +18,6 @@ HOURGLASS = u'\N{WHITE HOURGLASS}'
 DEFAULT_IGNORED_KEYS = set([
     u'action_status', u'action_type', u'task_level', u'task_uuid',
     u'message_type'])
-
-
-class Color(object):
-    def __init__(self, color, attrs=[]):
-        self.color = color
-        self.attrs = attrs
-
-    def __get__(self, instance, owner):
-        return lambda text: instance.colored(
-            text, self.color, attrs=self.attrs)
-
-
-class COLORS(object):
-    root = Color('white', ['bold'])
-    parent = Color('magenta')
-    success = Color('green')
-    failure = Color('red')
-    prop = Color('blue')
-    error = Color('red', ['bold'])
-    timestamp = Color('white', ['dark'])
-    duration = Color('blue', ['dark'])
-    tree_failed = Color('red', ['dark'])
-    tree_color0 = Color('white', ['dark'])
-    tree_color1 = Color('blue', ['dark'])
-    tree_color2 = Color('magenta', ['dark'])
-
-    def __init__(self, colored):
-        self.colored = colored
-
-
-def _no_color(text, *a, **kw):
-    """
-    Colorizer that does not colorize.
-    """
-    return text
 
 
 def _default_value_formatter(
@@ -84,7 +49,7 @@ def _default_value_formatter(
             format.anything(encoding)))
 
 
-def message_name(colors, format_value, message, end_message=None):
+def message_name(theme, format_value, message, end_message=None):
     """
     Derive the name for a message.
 
@@ -94,7 +59,7 @@ def message_name(colors, format_value, message, end_message=None):
     otherwise no name will be derived.
     """
     if message is not None:
-        timestamp = colors.timestamp(
+        timestamp = theme.timestamp(
             format_value(
                 message.timestamp, field_name=eliot_ns('timestamp')))
         if u'action_type' in message.contents:
@@ -105,7 +70,7 @@ def message_name(colors, format_value, message, end_message=None):
                 duration_seconds = end_message.timestamp - message.timestamp
                 duration = u' {} {}'.format(
                     HOURGLASS,
-                    colors.duration(
+                    theme.duration(
                         format_value(
                             duration_seconds,
                             field_name=eliot_ns('duration'))))
@@ -114,11 +79,11 @@ def message_name(colors, format_value, message, end_message=None):
                 action_status = message.contents.action_status
             status_color = identity
             if action_status == u'succeeded':
-                status_color = colors.success
+                status_color = theme.success
             elif action_status == u'failed':
-                status_color = colors.failure
+                status_color = theme.failure
             return u'{}{} {} {} {}{}'.format(
-                colors.parent(action_type),
+                theme.parent(action_type),
                 message.task_level.to_string(),
                 RIGHT_DOUBLE_ARROW,
                 status_color(message.contents.action_status),
@@ -128,13 +93,13 @@ def message_name(colors, format_value, message, end_message=None):
             message_type = format.escape_control_characters(
                 message.contents.message_type)
             return u'{}{} {}'.format(
-                colors.parent(message_type),
+                theme.parent(message_type),
                 message.task_level.to_string(),
                 timestamp)
     return u'<unnamed>'
 
 
-def format_node(format_value, colors, node):
+def format_node(format_value, theme, node):
     """
     Format a node for display purposes.
 
@@ -146,17 +111,17 @@ def format_node(format_value, colors, node):
     """
     if isinstance(node, Task):
         return u'{}'.format(
-            colors.root(
+            theme.root(
                 format.escape_control_characters(node.root().task_uuid)))
     elif isinstance(node, WrittenAction):
         return message_name(
-            colors,
+            theme,
             format_value,
             node.start_message,
             node.end_message)
     elif isinstance(node, WrittenMessage):
         return message_name(
-            colors,
+            theme,
             format_value,
             node)
     elif isinstance(node, tuple):
@@ -168,7 +133,7 @@ def format_node(format_value, colors, node):
         if is_namespace(key):
             key = format_namespace(key)
         return u'{}: {}'.format(
-            colors.prop(format.escape_control_characters(key)),
+            theme.prop(format.escape_control_characters(key)),
             value)
     raise NotImplementedError()
 
@@ -249,9 +214,10 @@ class ColorizedOptions():
 
 
 def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
-                 human_readable=False, colorize=False, write_err=None,
+                 human_readable=False, write_err=None,
                  format_node=format_node, format_value=None,
-                 utc_timestamps=True, colorize_tree=False, ascii=False):
+                 utc_timestamps=True, colorize_tree=False, ascii=False,
+                 theme=None):
     """
     Render Eliot tasks as an ASCII tree.
 
@@ -275,10 +241,12 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
     :param bool utc_timestamps: Format timestamps as UTC?
     :param int colorize_tree: Colorizing the tree output?
     :param bool ascii: Render the tree as plain ASCII instead of Unicode?
+    :param Theme theme: Theme to use for rendering.
     """
     if ignored_fields is None:
         ignored_fields = DEFAULT_IGNORED_KEYS
-    colors = COLORS(colored if colorize else _no_color)
+    if theme is None:
+        theme = get_theme(dark_background=True)
     caught_exceptions = []
     if format_value is None:
         format_value = _default_value_formatter(
@@ -290,7 +258,7 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
         caught_exceptions,
         u'<value formatting exception>')
     _format_node = track_exceptions(
-        partial(format_node, _format_value, colors),
+        partial(format_node, _format_value, theme),
         caught_exceptions,
         u'<node formatting exception>')
     _get_children = partial(get_children, ignored_fields)
@@ -302,8 +270,8 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
             options = Options()
         if colorize_tree:
             return ColorizedOptions(
-                failed_color=colors.tree_failed,
-                depth_colors=[colors.tree_color0, colors.tree_color1, colors.tree_color2],
+                failed_color=theme.tree_failed,
+                depth_colors=[theme.tree_color0, theme.tree_color1, theme.tree_color2],
                 options=options)
         return options
 
@@ -313,7 +281,7 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
 
     if write_err and caught_exceptions:
         write_err(
-            colors.error(
+            theme.error(
                 u'Exceptions ({}) occurred during processing:\n'.format(
                     len(caught_exceptions))))
         for exc in caught_exceptions:

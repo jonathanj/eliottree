@@ -10,8 +10,9 @@ from testtools.matchers import (
 from eliottree import (
     render_tasks, tasks_from_iterable)
 from eliottree._render import (
-    COLORS, HOURGLASS, RIGHT_DOUBLE_ARROW, _default_value_formatter, _no_color,
-    format_node, get_children, message_fields, message_name)
+    HOURGLASS, RIGHT_DOUBLE_ARROW, _default_value_formatter, format_node,
+    get_children, message_fields, message_name)
+from eliottree._theme import get_theme
 from eliottree._util import eliot_ns
 from eliottree.test.matchers import ExactlyEquals
 from eliottree.test.tasks import (
@@ -131,8 +132,8 @@ class DefaultValueFormatterTests(TestCase):
             ExactlyEquals(text_type(now)))
 
 
-colors = COLORS(colored)
-no_colors = COLORS(_no_color)
+colors = get_theme(dark_background=True, colored=colored)
+no_colors = get_theme(dark_background=True, colored=None)
 
 
 def no_formatting(value, field_name=None):
@@ -704,11 +705,11 @@ class RenderTasksTests(TestCase):
 
     def test_colorize(self):
         """
-        Passing ``colorize=True`` will colorize the output.
+        Passing ``theme`` will colorize the output.
         """
         self.assertThat(
             self.render_tasks([action_task, action_task_end],
-                              colorize=True),
+                              theme=colors),
             ExactlyEquals(
                 u'\n'.join([
                     colors.root(u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4'),

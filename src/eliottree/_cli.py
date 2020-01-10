@@ -1,9 +1,11 @@
 import argparse
 import codecs
 import json
+import os
 import platform
 import sys
 from pprint import pformat
+from termcolor import colored
 
 import iso8601
 from six import PY3, binary_type, reraise
@@ -13,6 +15,7 @@ from toolz import compose
 from eliottree import (
     EliotParseError, JSONParseError, filter_by_end_date, filter_by_jmespath,
     filter_by_start_date, filter_by_uuid, render_tasks, tasks_from_iterable)
+from eliottree._theme import get_theme
 
 
 def text_writer(fd):
@@ -92,7 +95,7 @@ def setup_platform(colorize):
             colorama.init()
 
 
-def display_tasks(tasks, color, colorize_tree, ascii, ignored_fields,
+def display_tasks(tasks, color, colorize_tree, ascii, theme_name, ignored_fields,
                   field_limit, human_readable, utc_timestamps):
     """
     Render Eliot tasks, apply any command-line-specified behaviour and render
@@ -106,6 +109,13 @@ def display_tasks(tasks, color, colorize_tree, ascii, ignored_fields,
     setup_platform(colorize=colorize)
     write = text_writer(sys.stdout).write
     write_err = text_writer(sys.stderr).write
+    if theme_name == 'auto':
+        dark_background = is_dark_terminal_background(default=True)
+    else:
+        dark_background = theme_name == 'dark'
+    theme = get_theme(
+        dark_background=dark_background,
+        colored=colored if colorize else None)
 
     render_tasks(
         write=write,
@@ -114,10 +124,10 @@ def display_tasks(tasks, color, colorize_tree, ascii, ignored_fields,
         ignored_fields=set(ignored_fields) or None,
         field_limit=field_limit,
         human_readable=human_readable,
-        colorize=colorize,
         colorize_tree=colorize and colorize_tree,
         ascii=ascii,
-        utc_timestamps=utc_timestamps)
+        utc_timestamps=utc_timestamps,
+        theme=theme)
 
 
 def _decode_command_line(value, encoding='utf-8'):
@@ -127,6 +137,29 @@ def _decode_command_line(value, encoding='utf-8'):
     if isinstance(value, binary_type):
         return value.decode(encoding)
     return value
+
+
+def is_dark_terminal_background(default=True):
+    """
+    Does the terminal use a dark background color?
+
+    Currently just checks the `COLORFGBG` environment variable, if it exists,
+    which some terminals define as `fg:bg`.
+
+    :rtype: bool
+    """
+    colorfgbg = os.environ.get('COLORFGBG', None)
+    if colorfgbg is not None:
+        parts = os.environ['COLORFGBG'].split(';')
+        try:
+            last_number = int(parts[-1])
+            if 0 <= last_number <= 6 or last_number == 8:
+                return True
+            else:
+                return False
+        except ValueError:
+            pass
+    return default
 
 
 def main():
@@ -176,6 +209,11 @@ def main():
                         default=True,
                         dest='colorize_tree',
                         help='''Do not color the tree lines.''')
+    parser.add_argument('--theme',
+                        default='auto',
+                        choices=['auto', 'dark', 'light'],
+                        dest='theme_name',
+                        help='''Select a color theme to use.'''),
     parser.add_argument('-l', '--field-limit',
                         metavar='LENGTH',
                         type=int,
@@ -216,6 +254,7 @@ def main():
             tasks=tasks,
             color=args.color,
             colorize_tree=args.colorize_tree,
+            theme_name=args.theme_name,
             ascii=args.ascii,
             ignored_fields=args.ignored_fields,
             field_limit=args.field_limit,
