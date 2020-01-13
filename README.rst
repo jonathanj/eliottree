@@ -58,8 +58,14 @@ have it rendered incrementally. There is a caveat though: Trees are only
 rendered once an end message—a success or failure status—for the tree's root
 action appears in the data.
 
-Usage from Python
------------------
+Command-line options
+--------------------
+
+Consult the output of `eliot-tree --help` to see a complete list of command-line
+options.
+
+Programmatic usage
+------------------
 
 .. code-block:: python
 
@@ -71,53 +77,43 @@ Usage from Python
 See :code:`help(render_tasks)` and :code:`help(tasks_from_iterable)` from a
 Python REPL for more information.
 
-Usage from the command-line
----------------------------
+Configuration
+-------------
 
-.. code-block::
+Command-line options may have custom defaults specified by way of a config file.
+The config file can be passed with the `--config` argument, or will be read from
+`~/.config/eliot-tree/config.json`. See `config.example.json`_ for an
+example.
 
-   $ eliot-tree
-   usage: eliot-tree [-h] [-u UUID] [-i KEY] [--raw] [--local-timezone]
-                     [--color {always,auto,never}] [--ascii] [--no-color-tree]
-                     [--theme {auto,dark,light}] [-l LENGTH] [--select QUERY]
-                     [--start START] [--end END]
-                     [FILE [FILE ...]]
+.. _config.example.json: https://github.com/jonathanj/eliottree/blob/master/config.example.json
 
-   Display an Eliot log as a tree of tasks.
+Theme overrides
+~~~~~~~~~~~~~~~
 
-   positional arguments:
-     FILE                  Files to process. Omit to read from stdin.
+Theme colors can be overridden via the `theme_overrides` key in the config file.
+The value of this key is itself a JSON object, each key is the name of a theme
+color and each value is a JSON list. This list should contain two values:
 
-   optional arguments:
-     -h, --help            show this help message and exit
-     -u UUID, --task-uuid UUID
-                           Select a specific task by UUID.
-     -i KEY, --ignore-task-key KEY
-                           Ignore a task key, use multiple times to ignore
-                           multiple keys. Defaults to ignoring most Eliot
-                           standard keys.
-     --raw                 Do not format some task values (such as UTC
-                           timestamps) as human-readable.
-     --local-timezone      Convert timestamps to the local timezone.
-     --color {always,auto,never}
-                           Color the output. Defaults based on whether the output
-                           is a TTY.
-     --ascii               Use ASCII for tree drawing characters.
-     --no-color-tree       Do not color the tree lines.
-     --theme {auto,dark,light}
-                           Select a color theme to use.
-     -l LENGTH, --field-limit LENGTH
-                           Limit the length of field values to LENGTH or a
-                           newline, whichever comes first. Use a length of 0 to
-                           output the complete value.
-     --select QUERY        Select tasks to be displayed based on a jmespath
-                           query, can be specified multiple times to mimic
-                           logical AND. If any child task is selected the entire
-                           top-level task is selected. See <http://jmespath.org/>
-     --start START         Select tasks whose timestamp occurs after (or on) an
-                           ISO8601 date.
-     --end END             Select tasks whose timestamp occurs before an ISO8601
-                           date.
+1. A string that is a known terminal color.
+2. An optional list of color attributes.
+
+For example, to override the `root` theme color to be bold magenta, and the
+`prop` theme color to be red:
+
+.. code-block:: json
+
+   {
+     "theme_overrides": {
+       "root": ["magenta", ["bold"]],
+       "prop": ["red"]
+     }
+   }
+
+See `_theme.py`_ for theme color names and the `termcolor`_ Python package for
+available color and attribute constants.
+
+.. _\_theme.py: https://github.com/jonathanj/eliottree/blob/master/src/eliottree/_theme.py
+.. _termcolor: https://pypi.org/project/termcolor/
 
 Contribute
 ----------

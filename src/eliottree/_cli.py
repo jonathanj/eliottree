@@ -15,7 +15,7 @@ from toolz import compose
 from eliottree import (
     EliotParseError, JSONParseError, filter_by_end_date, filter_by_jmespath,
     filter_by_start_date, filter_by_uuid, render_tasks, tasks_from_iterable)
-from eliottree._theme import get_theme
+from eliottree._theme import get_theme, apply_theme_overrides
 
 
 def text_writer(fd):
@@ -96,7 +96,7 @@ def setup_platform(colorize):
 
 
 def display_tasks(tasks, color, colorize_tree, ascii, theme_name, ignored_fields,
-                  field_limit, human_readable, utc_timestamps):
+                  field_limit, human_readable, utc_timestamps, theme_overrides):
     """
     Render Eliot tasks, apply any command-line-specified behaviour and render
     the task trees to stdout.
@@ -113,9 +113,11 @@ def display_tasks(tasks, color, colorize_tree, ascii, theme_name, ignored_fields
         dark_background = is_dark_terminal_background(default=True)
     else:
         dark_background = theme_name == 'dark'
-    theme = get_theme(
-        dark_background=dark_background,
-        colored=colored if colorize else None)
+    theme = apply_theme_overrides(
+        get_theme(
+            dark_background=dark_background,
+            colored=colored if colorize else None),
+        theme_overrides)
 
     render_tasks(
         write=write,
@@ -162,6 +164,28 @@ def is_dark_terminal_background(default=True):
     return default
 
 
+CONFIG_PATHS = [
+    os.path.expanduser('~/.config/eliot-tree/config.json'),
+]
+
+
+def locate_config():
+    """
+    Find the first config search path that exists.
+    """
+    return next((path for path in CONFIG_PATHS if os.path.exists(path)), None)
+
+
+def read_config(path):
+    """
+    Read a config file from the specified path.
+    """
+    if path is None:
+        return {}
+    with open(path, 'rb') as fd:
+        return json.load(fd)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Display an Eliot log as a tree of tasks.')
@@ -170,6 +194,10 @@ def main():
                         nargs='*',
                         type=argparse.FileType('r'),
                         help='''Files to process. Omit to read from stdin.''')
+    parser.add_argument('--config',
+                        metavar='FILE',
+                        dest='config',
+                        help='''File to read configuration optionsn from.''')
     parser.add_argument('-u', '--task-uuid',
                         dest='task_uuid',
                         metavar='UUID',
@@ -242,6 +270,9 @@ def main():
                         help='''Select tasks whose timestamp occurs before an
                         ISO8601 date.''')
     args = parser.parse_args()
+    config = read_config(locate_config() or args.config)
+    parser.set_defaults(**config)
+    args = parser.parse_args()
     stderr = text_writer(sys.stderr)
     try:
         inventory, tasks = parse_messages(
@@ -259,7 +290,8 @@ def main():
             ignored_fields=args.ignored_fields,
             field_limit=args.field_limit,
             human_readable=args.human_readable,
-            utc_timestamps=args.utc_timestamps)
+            utc_timestamps=args.utc_timestamps,
+            theme_overrides=config.get('theme_overrides'))
     except JSONParseError as e:
         stderr.write(u'JSON parse error, file {}, line {}:\n{}\n\n'.format(
             e.file_name,
