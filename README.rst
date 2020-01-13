@@ -61,7 +61,7 @@ action appears in the data.
 Command-line options
 --------------------
 
-Consult the output of `eliot-tree --help` to see a complete list of command-line
+Consult the output of ``eliot-tree --help`` to see a complete list of command-line
 options.
 
 Programmatic usage
@@ -81,13 +81,13 @@ Configuration
 -------------
 
 Command-line options may have custom defaults specified by way of a config file.
-The config file can be passed with the `--config` argument, or will be read from
-`~/.config/eliot-tree/config.json`. See `config.example.json`_ for an
+The config file can be passed with the ``--config`` argument, or will be read from
+``~/.config/eliot-tree/config.json``. See `config.example.json`_ for an
 example.
 
-Use the `--show-default-config` command-line option to display the default
+Use the ``--show-default-config`` command-line option to display the default
 configuration, suitable for redirecting to a file. Use the
-`--show-current-config` command-line option to display the current effective
+``--show-current-config`` command-line option to display the current effective
 configuration.
 
 .. _\_cli.py: https://github.com/jonathanj/eliottree/blob/master/src/eliottree/_cli.py
@@ -96,17 +96,17 @@ configuration.
 Theme overrides
 ~~~~~~~~~~~~~~~
 
-Theme colors can be overridden via the `theme_overrides` key in the config file.
+Theme colors can be overridden via the ``theme_overrides`` key in the config file.
 The value of this key is itself a JSON object, each key is the name of a theme
 color and each value is a JSON list. This list should contain three values:
 
-1. Foreground color, terminal color name or code; or `null` for the default color.
-2. Background color, terminal color name or code; or `null` for the default color.
-3. An optional array of color attribute names or codes; or `null` for the
+1. Foreground color, terminal color name or code; or ``null`` for the default color.
+2. Background color, terminal color name or code; or ``null`` for the default color.
+3. An optional array of color attribute names or codes; or ``null`` for the
    default attribute.
 
-For example, to override the `root` theme color to be bold magenta, and the
-`prop` theme color to be red:
+For example, to override the ``root`` theme color to be bold magenta, and the
+``prop`` theme color to be red:
 
 .. code-block:: json
 
