@@ -1,3 +1,6 @@
+from eliottree._color import color_factory
+
+
 NO_COLOR = (None,)
 DEFAULT_THEME = {
     # Task root.
@@ -29,17 +32,6 @@ DEFAULT_THEME = {
 }
 
 
-def color_factory(colored):
-    """
-    Factory for making text color-wrappers.
-    """
-    def _color(color, attrs=[]):
-        def __color(text):
-            return colored(text, color, attrs=attrs)
-        return __color
-    return _color
-
-
 class Theme(object):
     """
     Theme base class.
@@ -65,18 +57,18 @@ class DarkBackgroundTheme(Theme):
     def __init__(self, colored):
         super(DarkBackgroundTheme, self).__init__(
             color=color_factory(colored),
-            root=('white', ['bold']),
+            root=('white', None, ['bold']),
             parent=('magenta',),
             status_success=('green',),
             status_failure=('red',),
             prop_key=('blue',),
-            error=('red', ['bold']),
-            timestamp=('white', ['dark']),
-            duration=('blue', ['dark']),
+            error=('red', None, ['bold']),
+            timestamp=('white', None, ['dim']),
+            duration=('blue', None, ['dim']),
             tree_failed=('red',),
-            tree_color0=('white', ['dark']),
-            tree_color1=('blue', ['dark']),
-            tree_color2=('magenta', ['dark']),
+            tree_color0=('white', None, ['dim']),
+            tree_color1=('blue', None, ['dim']),
+            tree_color2=('magenta', None, ['dim']),
         )
 
 
@@ -87,18 +79,18 @@ class LightBackgroundTheme(Theme):
     def __init__(self, colored):
         super(LightBackgroundTheme, self).__init__(
             color=color_factory(colored),
-            root=('grey', ['bold']),
+            root=('dark_gray', None, ['bold']),
             parent=('magenta',),
             status_success=('green',),
             status_failure=('red',),
             prop_key=('blue',),
-            error=('red', ['bold']),
-            timestamp=('grey',),
-            duration=('blue', ['dark']),
+            error=('red', None, ['bold']),
+            timestamp=('dark_gray',),
+            duration=('blue', None, ['dim']),
             tree_failed=('red',),
-            tree_color0=('grey', ['dark']),
-            tree_color1=('blue', ['dark']),
-            tree_color2=('magenta', ['dark']),
+            tree_color0=('dark_gray', None, ['dim']),
+            tree_color1=('blue', None, ['dim']),
+            tree_color2=('magenta', None, ['dim']),
         )
 
 

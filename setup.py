@@ -46,7 +46,7 @@ setup(
         'six>=1.13.0',
         'jmespath>=0.7.1',
         'iso8601>=0.1.10',
-        'termcolor>=1.1.0',
+        'colored>=1.4.2',
         'toolz>=0.8.2',
         'eliot>=1.6.0',
         'colorama>=0.4.3;platform_system=="Windows"',

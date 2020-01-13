@@ -5,7 +5,6 @@ import os
 import platform
 import sys
 from pprint import pformat
-from termcolor import colored
 
 import iso8601
 from six import PY3, binary_type, reraise
@@ -15,6 +14,7 @@ from toolz import compose
 from eliottree import (
     EliotParseError, JSONParseError, filter_by_end_date, filter_by_jmespath,
     filter_by_start_date, filter_by_uuid, render_tasks, tasks_from_iterable)
+from eliottree._color import colored
 from eliottree._theme import get_theme, apply_theme_overrides
 
 

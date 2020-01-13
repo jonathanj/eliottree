@@ -1,7 +1,6 @@
 import time
 from eliot.parse import WrittenMessage
 from six import StringIO, text_type
-from termcolor import colored
 from testtools import ExpectedException, TestCase
 from testtools.matchers import AfterPreprocessing as After
 from testtools.matchers import (
@@ -9,6 +8,7 @@ from testtools.matchers import (
 
 from eliottree import (
     render_tasks, tasks_from_iterable)
+from eliottree._color import colored
 from eliottree._render import (
     HOURGLASS, RIGHT_DOUBLE_ARROW, _default_value_formatter, format_node,
     get_children, message_fields, message_name)

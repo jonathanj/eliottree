@@ -92,10 +92,12 @@ Theme overrides
 
 Theme colors can be overridden via the `theme_overrides` key in the config file.
 The value of this key is itself a JSON object, each key is the name of a theme
-color and each value is a JSON list. This list should contain two values:
+color and each value is a JSON list. This list should contain three values:
 
-1. A string that is a known terminal color.
-2. An optional list of color attributes.
+1. Foreground color, terminal color name or code; or `null` for the default color.
+2. Background color, terminal color name or code; or `null` for the default color.
+3. An optional array of color attribute names or codes; or `null` for the
+   default attribute.
 
 For example, to override the `root` theme color to be bold magenta, and the
 `prop` theme color to be red:
@@ -104,16 +106,16 @@ For example, to override the `root` theme color to be bold magenta, and the
 
    {
      "theme_overrides": {
-       "root": ["magenta", ["bold"]],
-       "prop": ["red"]
+       "root": ["magenta", null, ["bold"]],
+       "prop_key": ["red"]
      }
    }
 
-See `_theme.py`_ for theme color names and the `termcolor`_ Python package for
+See `_theme.py`_ for theme color names and the `colored`_ Python package for
 available color and attribute constants.
 
 .. _\_theme.py: https://github.com/jonathanj/eliottree/blob/master/src/eliottree/_theme.py
-.. _termcolor: https://pypi.org/project/termcolor/
+.. _colored: https://pypi.org/project/colored/
 
 Contribute
 ----------
