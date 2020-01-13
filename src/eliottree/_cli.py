@@ -82,17 +82,11 @@ def setup_platform(colorize):
     if platform.system() == 'Windows':
         # Initialise Unicode support for Windows terminals, even if they're not
         # using the Unicode codepage.
-        # N.B. This _must_ happen before `colorama` because win_unicode_console
-        # replaces stdin/stdout while colorama wraps them.
         import win_unicode_console  # noqa: E402
         import warnings  # noqa: E402
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore', category=RuntimeWarning)
             win_unicode_console.enable()
-        if colorize:
-            # Initialise color support for Windows terminals.
-            import colorama  # noqa: E402
-            colorama.init()
 
 
 def display_tasks(tasks, color, colorize_tree, ascii, theme_name, ignored_fields,

@@ -49,7 +49,6 @@ setup(
         'colored>=1.4.2',
         'toolz>=0.8.2',
         'eliot>=1.6.0',
-        'colorama>=0.4.3;platform_system=="Windows"',
         'win-unicode-console>=0.5;platform_system=="Windows"',
     ],
     extras_require={
