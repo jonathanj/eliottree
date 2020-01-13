@@ -5,7 +5,6 @@ import os
 import platform
 import sys
 from pprint import pformat
-from termcolor import colored
 
 import iso8601
 from six import PY3, binary_type, reraise
@@ -15,7 +14,8 @@ from toolz import compose
 from eliottree import (
     EliotParseError, JSONParseError, filter_by_end_date, filter_by_jmespath,
     filter_by_start_date, filter_by_uuid, render_tasks, tasks_from_iterable)
-from eliottree._theme import get_theme
+from eliottree._color import colored
+from eliottree._theme import get_theme, apply_theme_overrides
 
 
 def text_writer(fd):
@@ -82,21 +82,15 @@ def setup_platform(colorize):
     if platform.system() == 'Windows':
         # Initialise Unicode support for Windows terminals, even if they're not
         # using the Unicode codepage.
-        # N.B. This _must_ happen before `colorama` because win_unicode_console
-        # replaces stdin/stdout while colorama wraps them.
         import win_unicode_console  # noqa: E402
         import warnings  # noqa: E402
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore', category=RuntimeWarning)
             win_unicode_console.enable()
-        if colorize:
-            # Initialise color support for Windows terminals.
-            import colorama  # noqa: E402
-            colorama.init()
 
 
 def display_tasks(tasks, color, colorize_tree, ascii, theme_name, ignored_fields,
-                  field_limit, human_readable, utc_timestamps):
+                  field_limit, human_readable, utc_timestamps, theme_overrides):
     """
     Render Eliot tasks, apply any command-line-specified behaviour and render
     the task trees to stdout.
@@ -113,9 +107,11 @@ def display_tasks(tasks, color, colorize_tree, ascii, theme_name, ignored_fields
         dark_background = is_dark_terminal_background(default=True)
     else:
         dark_background = theme_name == 'dark'
-    theme = get_theme(
-        dark_background=dark_background,
-        colored=colored if colorize else None)
+    theme = apply_theme_overrides(
+        get_theme(
+            dark_background=dark_background,
+            colored=colored if colorize else None),
+        theme_overrides)
 
     render_tasks(
         write=write,
@@ -162,6 +158,43 @@ def is_dark_terminal_background(default=True):
     return default
 
 
+CONFIG_PATHS = [
+    os.path.expanduser('~/.config/eliot-tree/config.json'),
+]
+
+
+def locate_config():
+    """
+    Find the first config search path that exists.
+    """
+    return next((path for path in CONFIG_PATHS if os.path.exists(path)), None)
+
+
+def read_config(path):
+    """
+    Read a config file from the specified path.
+    """
+    if path is None:
+        return {}
+    with open(path, 'rb') as fd:
+        return json.load(fd)
+
+
+CONFIG_BLACKLIST = [
+    'files', 'start', 'end', 'print_default_config', 'config', 'select',
+    'task_uuid']
+
+
+def print_namespace(namespace):
+    """
+    Print an argparse namespace to stdout as JSON.
+    """
+    config = {k: v for k, v in vars(namespace).items()
+              if k not in CONFIG_BLACKLIST}
+    stdout = text_writer(sys.stdout)
+    stdout.write(json.dumps(config, indent=2))
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Display an Eliot log as a tree of tasks.')
@@ -170,6 +203,10 @@ def main():
                         nargs='*',
                         type=argparse.FileType('r'),
                         help='''Files to process. Omit to read from stdin.''')
+    parser.add_argument('--config',
+                        metavar='FILE',
+                        dest='config',
+                        help='''File to read configuration optionsn from.''')
     parser.add_argument('-u', '--task-uuid',
                         dest='task_uuid',
                         metavar='UUID',
@@ -241,7 +278,26 @@ def main():
                         type=iso8601.parse_date,
                         help='''Select tasks whose timestamp occurs before an
                         ISO8601 date.''')
+    parser.add_argument('--show-default-config',
+                        dest='print_default_config',
+                        action='store_true',
+                        help='''Show the default configuration.''')
+    parser.add_argument('--show-current-config',
+                        dest='print_current_config',
+                        action='store_true',
+                        help='''Show the current effective configuration.''')
     args = parser.parse_args()
+    if args.print_default_config:
+        print_namespace(parser.parse_args([]))
+        return
+
+    config = read_config(locate_config() or args.config)
+    parser.set_defaults(**config)
+    args = parser.parse_args()
+    if args.print_current_config:
+        print_namespace(args)
+        return
+
     stderr = text_writer(sys.stderr)
     try:
         inventory, tasks = parse_messages(
@@ -259,7 +315,8 @@ def main():
             ignored_fields=args.ignored_fields,
             field_limit=args.field_limit,
             human_readable=args.human_readable,
-            utc_timestamps=args.utc_timestamps)
+            utc_timestamps=args.utc_timestamps,
+            theme_overrides=config.get('theme_overrides'))
     except JSONParseError as e:
         stderr.write(u'JSON parse error, file {}, line {}:\n{}\n\n'.format(
             e.file_name,

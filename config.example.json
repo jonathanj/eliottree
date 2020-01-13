@@ -1,0 +1,11 @@
+{
+  "raw": true,
+  "color": "auto",
+  "ascii": true,
+  "colorize_tree": true,
+  "field_limit": 0,
+  "utc_timestamps": false,
+  "theme_overrides": {
+    "root": ["magenta", ["bold"]]
+  }
+}

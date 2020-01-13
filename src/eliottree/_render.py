@@ -79,12 +79,12 @@ def message_name(theme, format_value, message, end_message=None):
                 action_status = message.contents.action_status
             status_color = identity
             if action_status == u'succeeded':
-                status_color = theme.success
+                status_color = theme.status_success
             elif action_status == u'failed':
-                status_color = theme.failure
+                status_color = theme.status_failure
             return u'{}{} {} {} {}{}'.format(
                 theme.parent(action_type),
-                message.task_level.to_string(),
+                theme.task_level(message.task_level.to_string()),
                 RIGHT_DOUBLE_ARROW,
                 status_color(message.contents.action_status),
                 timestamp,
@@ -94,7 +94,7 @@ def message_name(theme, format_value, message, end_message=None):
                 message.contents.message_type)
             return u'{}{} {}'.format(
                 theme.parent(message_type),
-                message.task_level.to_string(),
+                theme.task_level(message.task_level.to_string()),
                 timestamp)
     return u'<unnamed>'
 
@@ -133,8 +133,8 @@ def format_node(format_value, theme, node):
         if is_namespace(key):
             key = format_namespace(key)
         return u'{}: {}'.format(
-            theme.prop(format.escape_control_characters(key)),
-            value)
+            theme.prop_key(format.escape_control_characters(key)),
+            theme.prop_value(text_type(value)))
     raise NotImplementedError()
 
 

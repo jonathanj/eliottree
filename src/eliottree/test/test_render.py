@@ -1,7 +1,6 @@
 import time
 from eliot.parse import WrittenMessage
 from six import StringIO, text_type
-from termcolor import colored
 from testtools import ExpectedException, TestCase
 from testtools.matchers import AfterPreprocessing as After
 from testtools.matchers import (
@@ -9,6 +8,7 @@ from testtools.matchers import (
 
 from eliottree import (
     render_tasks, tasks_from_iterable)
+from eliottree._color import colored
 from eliottree._render import (
     HOURGLASS, RIGHT_DOUBLE_ARROW, _default_value_formatter, format_node,
     get_children, message_fields, message_name)
@@ -180,7 +180,7 @@ class MessageNameTests(TestCase):
         ])).root().end_message
         self.assertThat(
             message_name(colors, no_formatting, message),
-            Contains(colors.success(u'succeeded')))
+            Contains(colors.status_success(u'succeeded')))
 
     def test_action_status_failed(self):
         """
@@ -191,7 +191,7 @@ class MessageNameTests(TestCase):
         ])).root().end_message
         self.assertThat(
             message_name(colors, no_formatting, message),
-            Contains(colors.failure(u'failed')))
+            Contains(colors.status_failure(u'failed')))
 
     def test_message_type(self):
         """
@@ -268,8 +268,9 @@ class FormatNodeTests(TestCase):
         node = (u'a\nb\x1bc', [u'x\n', u'y\x1b', u'z'])
         self.assertThat(
             self.format_node(node, colors=colors),
-            ExactlyEquals(u'{}: '.format(
-                colors.prop(u'a\u240ab\u241bc'))))
+            ExactlyEquals(u'{}: {}'.format(
+                colors.prop_key(u'a\u240ab\u241bc'),
+                colors.prop_value(u''))))
 
     def test_tuple_dict(self):
         """
@@ -279,8 +280,9 @@ class FormatNodeTests(TestCase):
         node = (u'a\nb\x1bc', {u'x\n': u'y\x1b', u'z': u'zz'})
         self.assertThat(
             self.format_node(node, colors=colors),
-            ExactlyEquals(u'{}: '.format(
-                colors.prop(u'a\u240ab\u241bc'))))
+            ExactlyEquals(u'{}: {}'.format(
+                colors.prop_key(u'a\u240ab\u241bc'),
+                colors.prop_value(u''))))
 
     def test_tuple_other(self):
         """
@@ -290,15 +292,15 @@ class FormatNodeTests(TestCase):
         self.assertThat(
             self.format_node(node, colors=colors),
             ExactlyEquals(u'{}: {}'.format(
-                colors.prop(u'a\u240ab\u241bc'),
-                u'hello')))
+                colors.prop_key(u'a\u240ab\u241bc'),
+                colors.prop_value(u'hello'))))
 
         node = (u'a\nb\x1bc', 42)
         self.assertThat(
             self.format_node(node, colors=colors),
             ExactlyEquals(u'{}: {}'.format(
-                colors.prop(u'a\u240ab\u241bc'),
-                42)))
+                colors.prop_key(u'a\u240ab\u241bc'),
+                colors.prop_value(u'42'))))
 
     def test_other(self):
         """
@@ -713,15 +715,17 @@ class RenderTasksTests(TestCase):
             ExactlyEquals(
                 u'\n'.join([
                     colors.root(u'f3a32bb3-ea6b-457c-aa99-08a3d0491ab4'),
-                    u'\u2514\u2500\u2500 {}/1 \u21d2 {} {} {} {}'.format(
+                    u'\u2514\u2500\u2500 {}{} \u21d2 {} {} {} {}'.format(
                         colors.parent(u'app:action'),
-                        colors.success(u'started'),
+                        colors.task_level(u'/1'),
+                        colors.status_success(u'started'),
                         colors.timestamp(u'1425356800'),
                         HOURGLASS,
                         colors.duration(u'2')),
-                    u'    \u2514\u2500\u2500 {}/2 \u21d2 {} {}'.format(
+                    u'    \u2514\u2500\u2500 {}{} \u21d2 {} {}'.format(
                         colors.parent(u'app:action'),
-                        colors.success(u'succeeded'),
+                        colors.task_level(u'/2'),
+                        colors.status_success(u'succeeded'),
                         colors.timestamp(u'1425356802')),
                     u'\n',
                 ])))
