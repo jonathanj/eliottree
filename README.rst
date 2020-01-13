@@ -85,6 +85,12 @@ The config file can be passed with the `--config` argument, or will be read from
 `~/.config/eliot-tree/config.json`. See `config.example.json`_ for an
 example.
 
+Use the `--show-default-config` command-line option to display the default
+configuration, suitable for redirecting to a file. Use the
+`--show-current-config` command-line option to display the current effective
+configuration.
+
+.. _\_cli.py: https://github.com/jonathanj/eliottree/blob/master/src/eliottree/_cli.py
 .. _config.example.json: https://github.com/jonathanj/eliottree/blob/master/config.example.json
 
 Theme overrides

@@ -186,6 +186,21 @@ def read_config(path):
         return json.load(fd)
 
 
+CONFIG_BLACKLIST = [
+    'files', 'start', 'end', 'print_default_config', 'config', 'select',
+    'task_uuid']
+
+
+def print_namespace(namespace):
+    """
+    Print an argparse namespace to stdout as JSON.
+    """
+    config = {k: v for k, v in vars(namespace).items()
+              if k not in CONFIG_BLACKLIST}
+    stdout = text_writer(sys.stdout)
+    stdout.write(json.dumps(config, indent=2))
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Display an Eliot log as a tree of tasks.')
@@ -269,10 +284,26 @@ def main():
                         type=iso8601.parse_date,
                         help='''Select tasks whose timestamp occurs before an
                         ISO8601 date.''')
+    parser.add_argument('--show-default-config',
+                        dest='print_default_config',
+                        action='store_true',
+                        help='''Show the default configuration.''')
+    parser.add_argument('--show-current-config',
+                        dest='print_current_config',
+                        action='store_true',
+                        help='''Show the current effective configuration.''')
     args = parser.parse_args()
+    if args.print_default_config:
+        print_namespace(parser.parse_args([]))
+        return
+
     config = read_config(locate_config() or args.config)
     parser.set_defaults(**config)
     args = parser.parse_args()
+    if args.print_current_config:
+        print_namespace(args)
+        return
+
     stderr = text_writer(sys.stderr)
     try:
         inventory, tasks = parse_messages(
