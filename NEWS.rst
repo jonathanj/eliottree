@@ -4,6 +4,38 @@ eliot-tree changelog
 
 .. towncrier release notes start
 
+Eliottree 19.0.0 (2020-01-14)
+=============================
+
+Features
+--------
+
+- Tree lines are now colored to help differentiate nested tasks, action tasks that have failed are also colored distinctly; `--no-color-tree` will disable tree line colors. (#76)
+- An alternative color theme is now provided for light themed terminals, the `COLORFGBG` environment variable is used to try detect this but can be set explicitly with `--theme light`. (#78)
+- Timestamps can now be displayed in local time with `--local-timezone`. (#79)
+- Unicode and color output is now supported on Windows. (#82)
+- Colorize tree lines by default, use `--no-color-tree` to disable the feature. Tree lines normally cycle through several colors, however the lines of failed actions will be colored in a way that differentiates them. (#87)
+- It is now possible to configure eliottree's defaults via a config file, as well as override the color theme. Use `--show-default-config` to create a base config. (#88)
+
+
+Bugfixes
+--------
+
+- Passing multiple `--select` arguments interacted in a way that always failed. (#37)
+
+
+Improved Documentation
+----------------------
+
+- Added some examples of `--select` usage. (#37)
+
+
+Misc
+----
+
+- #75
+
+
 Eliottree 18.1.0 (2018-07-30)
 =============================
 
