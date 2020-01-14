@@ -1,0 +1,1 @@
+Passing multiple `--select` arguments interacted in a way that always failed.
