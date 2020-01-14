@@ -206,7 +206,7 @@ def main():
     parser.add_argument('--config',
                         metavar='FILE',
                         dest='config',
-                        help='''File to read configuration optionsn from.''')
+                        help='''File to read configuration options from.''')
     parser.add_argument('-u', '--task-uuid',
                         dest='task_uuid',
                         metavar='UUID',
@@ -266,8 +266,7 @@ def main():
                         type=_decode_command_line,
                         help='''Select tasks to be displayed based on a jmespath
                         query, can be specified multiple times to mimic logical
-                        AND. If any child task is selected the entire top-level
-                        task is selected. See <http://jmespath.org/>''')
+                        AND. See <http://jmespath.org/>''')
     parser.add_argument('--start',
                         dest='start',
                         type=iso8601.parse_date,
