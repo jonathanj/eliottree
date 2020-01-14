@@ -48,7 +48,14 @@ def filter_by_end_date(end_date):
     return _filter
 
 
+def combine_filters_and(*filters):
+    """
+    Combine several filters together in a logical-AND fashion.
+    """
+    return lambda value: all(f(value) for f in filters)
+
+
 __all__ = [
     'filter_by_jmespath', 'filter_by_uuid', 'filter_by_start_date',
-    'filter_by_end_date',
+    'filter_by_end_date', 'combine_filters_and',
 ]
