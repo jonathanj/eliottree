@@ -208,7 +208,7 @@ class ColorizedOptions(object):
     def color(self, node, depth):
         if isinstance(node, WrittenAction):
             end_message = node.end_message
-            if end_message.contents.action_status == u'failed':
+            if end_message and end_message.contents.action_status == u'failed':
                 return self.failed_color
         return self.depth_colors[depth % len(self.depth_colors)]
 

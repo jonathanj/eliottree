@@ -12,7 +12,7 @@ This output:
 
 (or as text)
 
-.. code-block::
+.. code-block:: bash
 
    $ eliot-tree eliot.log
    f3a32bb3-ea6b-457c-aa99-08a3d0491ab4
@@ -50,6 +50,12 @@ was generated from:
    {"task_uuid": "89a56df5-d808-4a7c-8526-e603aae2e2f2", "action_type": "app:soap:service:success", "dump": "/home/user/dump_files/20150303/1425357071.51_Service_res.xml", "timestamp": 1425357071.513453, "action_status": "succeeded", "task_level": [2, 2]}
    {"status": 200, "task_uuid": "89a56df5-d808-4a7c-8526-e603aae2e2f2", "task_level": [3], "action_type": "app:soap:service:request", "timestamp": 1425357071.513992, "action_status": "succeeded"}
 
+Command-line options
+--------------------
+
+Consult the output of ``eliot-tree --help`` to see a complete list of command-line
+options.
+
 Streaming
 ---------
 
@@ -58,11 +64,86 @@ have it rendered incrementally. There is a caveat though: Trees are only
 rendered once an end message—a success or failure status—for the tree's root
 action appears in the data.
 
-Command-line options
---------------------
+Selecting / filtering tasks
+---------------------------
 
-Consult the output of `eliot-tree --help` to see a complete list of command-line
-options.
+By task UUID
+~~~~~~~~~~~~
+
+Entire task trees can be selected by UUID with the ``--task-uuid`` (``-u``)
+command-line option.
+
+By start / end date
+~~~~~~~~~~~~~~~~~~~
+
+Individual tasks can be selected based on their timestamp, use ``--start`` to
+select tasks after an ISO8601 date-time, and ``--end`` to select tasks before an
+ISO8601 date-time.
+
+By custom query
+~~~~~~~~~~~~~~~
+
+Custom task selection can be done with the ``--select`` command-line option, the
+syntax of which is `JMESPath`_, and is applied to the original Eliot JSON
+structures. Any data that appears within an Eliot task structure can be queried.
+Only the matching tasks (and all of their children) will be displayed, the
+parents of the task structure (by ``task_uuid``) will be elided.
+
+An important thing to note is that the query should be used as a *predicate* (it
+should describe a boolean condition), not to narrow a JSON data structure, as
+many of the examples on the JMESPath site illustrate. The reason for this is
+that Eliot tasks are not stored as one large nested JSON structure, they are
+instead many small structures that are linked together by metadata
+(``task_uuid``), which is not a structure than JMESPath is ideally equipped to
+query.
+
+The ``--select`` argument can be supplied multiple times to mimic logical AND,
+that is all ``--select`` predicates must pass in order for a task or node to be
+selected.
+
+.. _JMESPath: http://jmespath.org/
+
+Examples
+^^^^^^^^
+
+Select all tasks that contain a ``uri`` key, regardless of its value:
+
+.. code-block:: bash
+
+   --select 'uri'
+
+Select all Eliot action tasks of type ``http_client:request``:
+
+.. code-block:: bash
+
+   --select 'action_type == `"http_client:request"`'
+
+Backquotes are used to represent raw JSON values in JMESPath, ```500``` is the
+number 500, ```"500"``` is the string "500".
+
+Select all tasks that have an ``http_status`` of 401 or 500:
+
+.. code-block:: bash
+
+   --select 'contains(`[401, 500]`, status)'
+
+Select all tasks that have an ``http_status`` of 401 that were also made to a
+``uri`` containing the text ``/criticalEndpoint``:
+
+.. code-block:: bash
+
+   --select 'http_status == `401`' \
+   --select 'uri && contains(uri, `"/criticalEndpoint"`)'
+
+Here ``--select`` is passed twice to mimic a logic AND condition, it is also
+possible to use the JMESPath ``&&`` operator. There is also a test for the
+existence of the ``uri`` key to guard against calling the ``contains()``
+function with a null subject.
+
+See the `JMESPath specification`_ for more information.
+
+.. _JMESPath specification: http://jmespath.org/specification.html
+
 
 Programmatic usage
 ------------------
@@ -81,13 +162,13 @@ Configuration
 -------------
 
 Command-line options may have custom defaults specified by way of a config file.
-The config file can be passed with the `--config` argument, or will be read from
-`~/.config/eliot-tree/config.json`. See `config.example.json`_ for an
+The config file can be passed with the ``--config`` argument, or will be read from
+``~/.config/eliot-tree/config.json``. See `config.example.json`_ for an
 example.
 
-Use the `--show-default-config` command-line option to display the default
+Use the ``--show-default-config`` command-line option to display the default
 configuration, suitable for redirecting to a file. Use the
-`--show-current-config` command-line option to display the current effective
+``--show-current-config`` command-line option to display the current effective
 configuration.
 
 .. _\_cli.py: https://github.com/jonathanj/eliottree/blob/master/src/eliottree/_cli.py
@@ -96,17 +177,17 @@ configuration.
 Theme overrides
 ~~~~~~~~~~~~~~~
 
-Theme colors can be overridden via the `theme_overrides` key in the config file.
+Theme colors can be overridden via the ``theme_overrides`` key in the config file.
 The value of this key is itself a JSON object, each key is the name of a theme
 color and each value is a JSON list. This list should contain three values:
 
-1. Foreground color, terminal color name or code; or `null` for the default color.
-2. Background color, terminal color name or code; or `null` for the default color.
-3. An optional array of color attribute names or codes; or `null` for the
+1. Foreground color, terminal color name or code; or ``null`` for the default color.
+2. Background color, terminal color name or code; or ``null`` for the default color.
+3. An optional array of color attribute names or codes; or ``null`` for the
    default attribute.
 
-For example, to override the `root` theme color to be bold magenta, and the
-`prop` theme color to be red:
+For example, to override the ``root`` theme color to be bold magenta, and the
+``prop`` theme color to be red:
 
 .. code-block:: json
 
