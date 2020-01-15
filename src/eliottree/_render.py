@@ -1,5 +1,6 @@
 import sys
 import traceback
+import warnings
 from functools import partial
 
 from eliot.parse import WrittenAction, WrittenMessage, Task
@@ -8,6 +9,7 @@ from toolz import compose, excepts, identity
 
 from eliottree import format
 from eliottree.tree_format import format_tree, Options, ASCII_OPTIONS
+from eliottree._color import colored
 from eliottree._util import eliot_ns, format_namespace, is_namespace
 from eliottree._theme import get_theme
 
@@ -214,7 +216,7 @@ class ColorizedOptions(object):
 
 
 def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
-                 human_readable=False, write_err=None,
+                 human_readable=False, colorize=None, write_err=None,
                  format_node=format_node, format_value=None,
                  utc_timestamps=True, colorize_tree=False, ascii=False,
                  theme=None):
@@ -232,7 +234,7 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
     :param ignored_fields: Set of field names to ignore, defaults to ignoring
     most Eliot metadata.
     :param bool human_readable: Render field values as human-readable?
-    :param bool colorize: Colorized the output?
+    :param bool colorize: Colorized the output? (Deprecated, use `theme`.)
     :type write_err: Callable[[`text_type`], None]
     :param write_err: Callable used to write errors.
     :param format_node: See `format_node`.
@@ -245,6 +247,13 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
     """
     if ignored_fields is None:
         ignored_fields = DEFAULT_IGNORED_KEYS
+    if colorize is not None:
+        warnings.warn(
+            'Passing `colorize` is deprecated, use `theme` instead.',
+            DeprecationWarning)
+        theme = get_theme(
+            dark_background=True,
+            colored=colored if colorize else None)
     if theme is None:
         theme = get_theme(dark_background=True)
     caught_exceptions = []
