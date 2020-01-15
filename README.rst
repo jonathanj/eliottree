@@ -135,7 +135,7 @@ Select all tasks that have an ``http_status`` of 401 that were also made to a
    --select 'http_status == `401`' \
    --select 'uri && contains(uri, `"/criticalEndpoint"`)'
 
-Here ``--select`` is passed twice to mimic a logic AND condition, it is also
+Here ``--select`` is passed twice to mimic a logical AND condition, it is also
 possible to use the JMESPath ``&&`` operator. There is also a test for the
 existence of the ``uri`` key to guard against calling the ``contains()``
 function with a null subject.
