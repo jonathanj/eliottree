@@ -4,6 +4,13 @@ eliot-tree changelog
 
 .. towncrier release notes start
 
+Eliottree 19.0.1 (2020-01-15)
+=============================
+
+The public API for `render_tasks` was broken unnecessarily in 19.0.0, this
+release replaces the `colorize` keyword argument and deprecates it instead.
+
+
 Eliottree 19.0.0 (2020-01-14)
 =============================
 
