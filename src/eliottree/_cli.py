@@ -285,6 +285,11 @@ def main():
                         dest='print_current_config',
                         action='store_true',
                         help='''Show the current effective configuration.''')
+    parser.add_argument('--chunk-size',
+                        default=0,
+                        dest='chunk_size'
+                        type=int,
+                        help='''Break the print output into chunks of size. 0 prints all lines''')
     args = parser.parse_args()
     if args.print_default_config:
         print_namespace(parser.parse_args([]))
@@ -315,7 +320,8 @@ def main():
             field_limit=args.field_limit,
             human_readable=args.human_readable,
             utc_timestamps=args.utc_timestamps,
-            theme_overrides=config.get('theme_overrides'))
+            theme_overrides=config.get('theme_overrides')
+            chunk_size=args.chunk_size)
     except JSONParseError as e:
         stderr.write(u'JSON parse error, file {}, line {}:\n{}\n\n'.format(
             e.file_name,

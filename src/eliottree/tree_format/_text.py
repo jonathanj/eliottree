@@ -101,13 +101,23 @@ def _format_tree(node, format_node, get_children, options, prefix=u'', depth=0):
             yield result
 
 
-def format_tree(node, format_node, get_children, options=None):
+def format_tree(node, format_node, get_children, options=None, chunk_size=None):
     lines = itertools.chain(
         [format_node(node)],
         _format_tree(node, format_node, get_children, options or Options()),
-        [u''],
+        [u""],
     )
-    return u'\n'.join(lines)
+    if chunk_size is None or chunk_size<=0:
+        yield u"\n".join(lines)
+    else:
+        write_lines = u"\n".join((line for _, line in zip(range(chunk_size), lines)))
+        while True:
+            if not write_lines:
+                break
+            yield write_lines
+            write_lines = u"\n".join(
+                (line for _, line in zip(range(chunk_size), lines))
+            )
 
 
 def format_ascii_tree(tree, format_node, get_children):

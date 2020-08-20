@@ -219,7 +219,7 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
                  human_readable=False, colorize=None, write_err=None,
                  format_node=format_node, format_value=None,
                  utc_timestamps=True, colorize_tree=False, ascii=False,
-                 theme=None):
+                 theme=None, chunk_size=None):
     """
     Render Eliot tasks as an ASCII tree.
 
@@ -285,8 +285,31 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
         return options
 
     for task in tasks:
-        write(format_tree(task, _format_node, _get_children, make_options()))
-        write(u'\n')
+        chunks = format_tree(
+            task, _format_node, _get_children, make_options(), chunk_size
+        )
+        if chunk_size is None:
+            lines = next(chunks)
+            write(lines)
+        else:
+            exit = False
+            while True:
+                try:
+                    chunk = next(chunks)
+                except StopIteration:
+                    break
+                write(chunk)
+                write("\n")
+                print("Press any key to continue or 'X' to exit or 'T' for next task:")
+                user_in = sys.stdin.readline().strip().lower()
+                exit = user_in == "x"
+                next_task = user_in == "t"
+                if exit or next_task:
+                    break
+            if exit:
+                break
+
+        write("\n")
 
     if write_err and caught_exceptions:
         write_err(
