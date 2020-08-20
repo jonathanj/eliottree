@@ -320,7 +320,7 @@ def main():
             field_limit=args.field_limit,
             human_readable=args.human_readable,
             utc_timestamps=args.utc_timestamps,
-            theme_overrides=config.get('theme_overrides')
+            theme_overrides=config.get('theme_overrides'),
             chunk_size=args.chunk_size)
     except JSONParseError as e:
         stderr.write(u'JSON parse error, file {}, line {}:\n{}\n\n'.format(
