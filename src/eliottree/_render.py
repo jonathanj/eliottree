@@ -219,7 +219,7 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
                  human_readable=False, colorize=None, write_err=None,
                  format_node=format_node, format_value=None,
                  utc_timestamps=True, colorize_tree=False, ascii=False,
-                 theme=None, chunk_size=None):
+                 theme=None, chunk_size=0):
     """
     Render Eliot tasks as an ASCII tree.
 
@@ -285,10 +285,7 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
         return options
 
     for task in tasks:
-        if chunk_size is None:
-            write(format_tree(
-            task, _format_node, _get_children, make_options()))
-        else:
+        if chunk_size:
             chunks =  chunked_format_tree(task, _format_node, _get_children, make_options(), chunk_size)                      
             exit = False
             while True:
@@ -306,7 +303,9 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
                     break
             if exit:
                 break
-
+        else:
+            write(format_tree(
+            task, _format_node, _get_children, make_options()))
         write("\n")
 
     if write_err and caught_exceptions:

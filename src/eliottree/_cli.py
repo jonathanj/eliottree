@@ -90,7 +90,7 @@ def setup_platform(colorize):
 
 
 def display_tasks(tasks, color, colorize_tree, ascii, theme_name, ignored_fields,
-                  field_limit, human_readable, utc_timestamps, theme_overrides):
+                  field_limit, human_readable, utc_timestamps, theme_overrides, chunk_size):
     """
     Render Eliot tasks, apply any command-line-specified behaviour and render
     the task trees to stdout.
@@ -123,7 +123,8 @@ def display_tasks(tasks, color, colorize_tree, ascii, theme_name, ignored_fields
         colorize_tree=colorize and colorize_tree,
         ascii=ascii,
         utc_timestamps=utc_timestamps,
-        theme=theme)
+        theme=theme,
+        chunk_size=chunk_size)
 
 
 def _decode_command_line(value, encoding='utf-8'):
