@@ -100,7 +100,7 @@ def _format_tree(node, format_node, get_children, options, prefix=u'', depth=0):
                                    depth=depth + 1):
             yield result
 
-def chunked_format_tree(node, format_node, get_children, options=None, chunk_size=None)->Generator[str]:
+def chunked_format_tree(node, format_node, get_children, options=None, chunk_size=0)->Generator[str]:
     lines = itertools.chain(
         [format_node(node)],
         _format_tree(node, format_node, get_children, options or Options()),
@@ -130,10 +130,10 @@ def format_tree(node, format_node, get_children, options=None):
 
 def format_ascii_tree(tree, format_node, get_children):
     """ Formats the tree using only ascii characters """
-    return next(format_tree(tree,
+    return format_tree(tree,
                        format_node,
                        get_children,
-                       ASCII_OPTIONS, None))
+                       ASCII_OPTIONS)
 
 
 def print_tree(*args, **kwargs):
