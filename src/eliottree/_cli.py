@@ -288,7 +288,7 @@ def main():
                         help='''Show the current effective configuration.''')
     parser.add_argument('--chunk-size',
                         default=0,
-                        dest='chunk_size'
+                        dest='chunk_size',
                         type=int,
                         help='''Break the print output into chunks of size. 0 prints all lines''')
     args = parser.parse_args()
