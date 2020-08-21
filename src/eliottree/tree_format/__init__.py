@@ -17,6 +17,7 @@
 from ._text import (
     format_ascii_tree,
     format_tree,
+    chunked_format_tree,
     print_tree,
     Options,
     ASCII_OPTIONS,

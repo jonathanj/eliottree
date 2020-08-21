@@ -8,7 +8,7 @@ from six import text_type
 from toolz import compose, excepts, identity
 
 from eliottree import format
-from eliottree.tree_format import format_tree, Options, ASCII_OPTIONS
+from eliottree.tree_format import format_tree, Options, ASCII_OPTIONS, chunked_format_tree
 from eliottree._color import colored
 from eliottree._util import eliot_ns, format_namespace, is_namespace
 from eliottree._theme import get_theme
@@ -285,13 +285,11 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
         return options
 
     for task in tasks:
-        chunks = format_tree(
-            task, _format_node, _get_children, make_options(), chunk_size
-        )
         if chunk_size is None:
-            lines = next(chunks)
-            write(lines)
+            write(format_tree(
+            task, _format_node, _get_children, make_options()))
         else:
+            chunks =  chunked_format_tree(task, _format_node, _get_children, make_options(), chunk_size)                      
             exit = False
             while True:
                 try:

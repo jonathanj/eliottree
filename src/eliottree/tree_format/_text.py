@@ -16,9 +16,9 @@
 
 
 """Library for formatting trees."""
-
+from __future__ import annotations
 import itertools
-
+from typing import Generator
 
 class Options(object):
     def __init__(self,
@@ -100,8 +100,7 @@ def _format_tree(node, format_node, get_children, options, prefix=u'', depth=0):
                                    depth=depth + 1):
             yield result
 
-
-def format_tree(node, format_node, get_children, options=None, chunk_size=None):
+def chunked_format_tree(node, format_node, get_children, options=None, chunk_size=None)->Generator[str]:
     lines = itertools.chain(
         [format_node(node)],
         _format_tree(node, format_node, get_children, options or Options()),
@@ -119,13 +118,22 @@ def format_tree(node, format_node, get_children, options=None, chunk_size=None):
                 (line for _, line in zip(range(chunk_size), lines))
             )
 
+def format_tree(node, format_node, get_children, options=None):
+    lines = itertools.chain(
+        [format_node(node)],
+        _format_tree(node, format_node, get_children, options or Options()),
+        [u""],
+    )
+    return u"\n".join(lines)
+
+
 
 def format_ascii_tree(tree, format_node, get_children):
     """ Formats the tree using only ascii characters """
-    return format_tree(tree,
+    return next(format_tree(tree,
                        format_node,
                        get_children,
-                       ASCII_OPTIONS)
+                       ASCII_OPTIONS, None))
 
 
 def print_tree(*args, **kwargs):

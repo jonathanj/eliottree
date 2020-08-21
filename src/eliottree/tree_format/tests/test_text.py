@@ -36,7 +36,7 @@ class TestFormatTree(TestCase):
 
     def test_single_node_tree(self):
         tree = ('foo', [])
-        output = next(self.format_tree(tree))
+        output = self.format_tree(tree)
         self.assertEqual(dedent(u'''\
         foo
         '''), output)
@@ -49,7 +49,7 @@ class TestFormatTree(TestCase):
                 ('qux', []),
             ],
         )
-        output = next(self.format_tree(tree))
+        output = self.format_tree(tree)
         self.assertEqual(dedent(u'''\
         foo
         ├── bar
@@ -68,7 +68,7 @@ class TestFormatTree(TestCase):
                 ('qux', []),
             ],
         )
-        output = next(self.format_tree(tree))
+        output = self.format_tree(tree)
         self.assertEqual(dedent(u'''\
         foo
         ├── bar
@@ -89,7 +89,7 @@ class TestFormatTree(TestCase):
                 ]),
             ],
         )
-        output = next(self.format_tree(tree))
+        output = self.format_tree(tree)
         self.assertEqual(dedent(u'''\
         foo
         ├── bar
@@ -118,7 +118,7 @@ class TestFormatTree(TestCase):
                 ('qux\nfrab', []),
             ],
         )
-        output = next(self.format_tree(tree))
+        output = self.format_tree(tree)
         self.assertEqual(dedent(u'''\
         foo
         ├── bar⏎
