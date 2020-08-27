@@ -22,7 +22,7 @@ from testtools import TestCase
 from testtools.matchers import DocTestMatches
 
 from .._text import (
-    format_tree, format_ascii_tree, chunked_format_tree
+    format_tree, format_ascii_tree, paged_format_tree
 )
 from pprint import pprint as Print
 
@@ -154,28 +154,28 @@ class TestFormatTree(TestCase):
         +-- qux
         '''), output)
 
-class TestChunkedFormatTree(TestCase):
+class TestPagedFormatTree(TestCase):
     def format_tree(self, tree):
         return format_tree(tree, itemgetter(0), itemgetter(1))
 
-    def chunked_format_tree(self, tree, num_lines):
-        return chunked_format_tree(tree, itemgetter(0), itemgetter(1),None, num_lines)
+    def paged_format_tree(self, tree, num_lines):
+        return paged_format_tree(tree, itemgetter(0), itemgetter(1),None, num_lines)
 
-    def test_length_of_chunk(self):
+    def test_length_of_page_in_paged_format_tree(self):
         num_lines_to_get = 10
-        chunks = self.chunked_format_tree(ACCEPTANCE_INPUT, num_lines_to_get)
-        chunk = next(chunks)
-        lines = chunk.split('\n')
+        pages = self.paged_format_tree(ACCEPTANCE_INPUT, num_lines_to_get)
+        page = next(pages)
+        lines = page.split('\n')
         self.assertEqual(len(lines), num_lines_to_get)
-        chunk = next(chunks)
-        lines = chunk.split('\n')
+        page = next(pages)
+        lines = page.split('\n')
         self.assertEqual(len(lines), num_lines_to_get)
 
-    def test_combined_chunk_same_as_format_tree(self):
+    def test_combined_paged_tree_same_as_format_tree(self):
         num_lines_to_get = 10
         answer = self.format_tree(ACCEPTANCE_INPUT)
-        chunks = self.chunked_format_tree(ACCEPTANCE_INPUT, num_lines_to_get)
-        result = '\n'.join((chunk for chunk in chunks))
+        pages = self.paged_format_tree(ACCEPTANCE_INPUT, num_lines_to_get)
+        result = '\n'.join((page for page in pages))
         self.assertEqual(result, answer)
 
 
