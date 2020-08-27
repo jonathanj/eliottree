@@ -90,7 +90,7 @@ def setup_platform(colorize):
 
 
 def display_tasks(tasks, color, colorize_tree, ascii, theme_name, ignored_fields,
-                  field_limit, human_readable, utc_timestamps, theme_overrides):
+                  field_limit, human_readable, utc_timestamps, theme_overrides, page_size):
     """
     Render Eliot tasks, apply any command-line-specified behaviour and render
     the task trees to stdout.
@@ -123,7 +123,8 @@ def display_tasks(tasks, color, colorize_tree, ascii, theme_name, ignored_fields
         colorize_tree=colorize and colorize_tree,
         ascii=ascii,
         utc_timestamps=utc_timestamps,
-        theme=theme)
+        theme=theme,
+        page_size=page_size)
 
 
 def _decode_command_line(value, encoding='utf-8'):
@@ -285,6 +286,14 @@ def main():
                         dest='print_current_config',
                         action='store_true',
                         help='''Show the current effective configuration.''')
+    parser.add_argument('--page-size',
+                        metavar="LINES"
+                        type=int,
+                        default=0,
+                        dest='page_size',
+                        help='''Paginate the display of the log file diplaying 
+                        this many new lines at each iteration. 
+                        If this is 0 then all lines will be output''')
     args = parser.parse_args()
     if args.print_default_config:
         print_namespace(parser.parse_args([]))
@@ -315,7 +324,8 @@ def main():
             field_limit=args.field_limit,
             human_readable=args.human_readable,
             utc_timestamps=args.utc_timestamps,
-            theme_overrides=config.get('theme_overrides'))
+            theme_overrides=config.get('theme_overrides'),
+            page_size=args.page_size)
     except JSONParseError as e:
         stderr.write(u'JSON parse error, file {}, line {}:\n{}\n\n'.format(
             e.file_name,

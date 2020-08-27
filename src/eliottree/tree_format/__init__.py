@@ -17,6 +17,7 @@
 from ._text import (
     format_ascii_tree,
     format_tree,
+    paged_format_tree,
     print_tree,
     Options,
     ASCII_OPTIONS,

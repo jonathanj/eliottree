@@ -16,9 +16,10 @@
 
 
 """Library for formatting trees."""
-
+from __future__ import annotations
 import itertools
-
+from typing import Generator
+from toolz import partition_all
 
 class Options(object):
     def __init__(self,
@@ -100,14 +101,30 @@ def _format_tree(node, format_node, get_children, options, prefix=u'', depth=0):
                                    depth=depth + 1):
             yield result
 
+def paged_format_tree(node, format_node, get_children, options=None, page_size=0)->Generator[str]:
+    lines = itertools.chain(
+        [format_node(node)],
+        _format_tree(node, format_node, get_children, options or Options()),
+        [u""],
+    )
+    if page_size is None or page_size<=0:
+        yield u"\n".join(lines)
+    else:
+        write_lines = partition_all(page_size, lines)
+        while True:
+            try:
+                yield u"\n".join(next(write_lines))
+            except StopIteration:
+                break
 
 def format_tree(node, format_node, get_children, options=None):
     lines = itertools.chain(
         [format_node(node)],
         _format_tree(node, format_node, get_children, options or Options()),
-        [u''],
+        [u""],
     )
-    return u'\n'.join(lines)
+    return u"\n".join(lines)
+
 
 
 def format_ascii_tree(tree, format_node, get_children):

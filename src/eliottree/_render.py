@@ -8,7 +8,7 @@ from six import text_type
 from toolz import compose, excepts, identity
 
 from eliottree import format
-from eliottree.tree_format import format_tree, Options, ASCII_OPTIONS
+from eliottree.tree_format import format_tree, Options, ASCII_OPTIONS, paged_format_tree
 from eliottree._color import colored
 from eliottree._util import eliot_ns, format_namespace, is_namespace
 from eliottree._theme import get_theme
@@ -219,7 +219,7 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
                  human_readable=False, colorize=None, write_err=None,
                  format_node=format_node, format_value=None,
                  utc_timestamps=True, colorize_tree=False, ascii=False,
-                 theme=None):
+                 theme=None, page_size=0):
     """
     Render Eliot tasks as an ASCII tree.
 
@@ -285,8 +285,28 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
         return options
 
     for task in tasks:
-        write(format_tree(task, _format_node, _get_children, make_options()))
-        write(u'\n')
+        if page_size:
+            pages =  paged_format_tree(task, _format_node, _get_children, make_options(), page_size)                      
+            exit = False
+            while True:
+                try:
+                    page = next(pages)
+                except StopIteration:
+                    break
+                write(page)
+                write("\n")
+                print("Press 'Enter' to continue or 'X' to exit or 'T' for next task:")
+                user_in = sys.stdin.readline().strip().lower()
+                exit = user_in == "x"
+                next_task = user_in == "t"
+                if exit or next_task:
+                    break
+            if exit:
+                break
+        else:
+            write(format_tree(
+            task, _format_node, _get_children, make_options()))
+        write("\n")
 
     if write_err and caught_exceptions:
         write_err(

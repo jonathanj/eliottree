@@ -22,8 +22,9 @@ from testtools import TestCase
 from testtools.matchers import DocTestMatches
 
 from .._text import (
-    format_tree, format_ascii_tree,
+    format_tree, format_ascii_tree, paged_format_tree
 )
+from pprint import pprint as Print
 
 
 class TestFormatTree(TestCase):
@@ -152,6 +153,30 @@ class TestFormatTree(TestCase):
         |-- baz
         +-- qux
         '''), output)
+
+class TestPagedFormatTree(TestCase):
+    def format_tree(self, tree):
+        return format_tree(tree, itemgetter(0), itemgetter(1))
+
+    def paged_format_tree(self, tree, num_lines):
+        return paged_format_tree(tree, itemgetter(0), itemgetter(1),None, num_lines)
+
+    def test_length_of_page_in_paged_format_tree(self):
+        num_lines_to_get = 10
+        pages = self.paged_format_tree(ACCEPTANCE_INPUT, num_lines_to_get)
+        page = next(pages)
+        lines = page.split('\n')
+        self.assertEqual(len(lines), num_lines_to_get)
+        page = next(pages)
+        lines = page.split('\n')
+        self.assertEqual(len(lines), num_lines_to_get)
+
+    def test_combined_paged_tree_same_as_format_tree(self):
+        num_lines_to_get = 10
+        answer = self.format_tree(ACCEPTANCE_INPUT)
+        pages = self.paged_format_tree(ACCEPTANCE_INPUT, num_lines_to_get)
+        result = '\n'.join((page for page in pages))
+        self.assertEqual(result, answer)
 
 
 def d(name, files):
