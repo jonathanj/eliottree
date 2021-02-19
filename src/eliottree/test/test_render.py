@@ -10,8 +10,10 @@ from eliottree import (
     render_tasks, tasks_from_iterable)
 from eliottree._color import colored
 from eliottree._render import (
-    HOURGLASS, RIGHT_DOUBLE_ARROW, _default_value_formatter, format_node,
+    _default_value_formatter, format_node,
     get_children, message_fields, message_name)
+from eliottree.tree_format._text import (
+    HOURGLASS, RIGHT_DOUBLE_ARROW)
 from eliottree._theme import get_theme
 from eliottree._util import eliot_ns
 from eliottree.test.matchers import ExactlyEquals
