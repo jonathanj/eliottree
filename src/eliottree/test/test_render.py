@@ -10,8 +10,10 @@ from eliottree import (
     render_tasks, tasks_from_iterable)
 from eliottree._color import colored
 from eliottree._render import (
-    HOURGLASS, RIGHT_DOUBLE_ARROW, _default_value_formatter, format_node,
+    _default_value_formatter, format_node,
     get_children, message_fields, message_name)
+from eliottree.tree_format._text import (
+    HOURGLASS, RIGHT_DOUBLE_ARROW, Options)
 from eliottree._theme import get_theme
 from eliottree._util import eliot_ns
 from eliottree.test.matchers import ExactlyEquals
@@ -150,7 +152,7 @@ class MessageNameTests(TestCase):
         """
         message = next(tasks_from_iterable([action_task])).root().start_message
         self.assertThat(
-            message_name(colors, no_formatting, message),
+            message_name(colors, no_formatting, message, options=Options()),
             StartsWith(colors.parent(message.contents.action_type)))
 
     def test_action_task_level(self):
@@ -159,7 +161,7 @@ class MessageNameTests(TestCase):
         """
         message = next(tasks_from_iterable([action_task])).root().start_message
         self.assertThat(
-            message_name(colors, no_formatting, message),
+            message_name(colors, no_formatting, message, options=Options()),
             Contains(message.task_level.to_string()))
 
     def test_action_status(self):
@@ -168,7 +170,7 @@ class MessageNameTests(TestCase):
         """
         message = next(tasks_from_iterable([action_task])).root().start_message
         self.assertThat(
-            message_name(colors, no_formatting, message),
+            message_name(colors, no_formatting, message, options=Options()),
             Contains(u'started'))
 
     def test_action_status_success(self):
@@ -179,7 +181,7 @@ class MessageNameTests(TestCase):
             action_task, action_task_end,
         ])).root().end_message
         self.assertThat(
-            message_name(colors, no_formatting, message),
+            message_name(colors, no_formatting, message, options=Options()),
             Contains(colors.status_success(u'succeeded')))
 
     def test_action_status_failed(self):
@@ -190,7 +192,7 @@ class MessageNameTests(TestCase):
             action_task, action_task_end_failed,
         ])).root().end_message
         self.assertThat(
-            message_name(colors, no_formatting, message),
+            message_name(colors, no_formatting, message, options=Options()),
             Contains(colors.status_failure(u'failed')))
 
     def test_message_type(self):
@@ -199,7 +201,7 @@ class MessageNameTests(TestCase):
         """
         message = WrittenMessage.from_dict(message_task)
         self.assertThat(
-            message_name(colors, no_formatting, message),
+            message_name(colors, no_formatting, message, options=Options()),
             StartsWith(colors.parent(message.contents.message_type)))
 
     def test_message_task_level(self):
@@ -208,7 +210,7 @@ class MessageNameTests(TestCase):
         """
         message = WrittenMessage.from_dict(message_task)
         self.assertThat(
-            message_name(colors, no_formatting, message),
+            message_name(colors, no_formatting, message, options=Options()),
             Contains(message.task_level.to_string()))
 
     def test_unknown(self):
@@ -217,11 +219,11 @@ class MessageNameTests(TestCase):
         ``<unnamed>``.
         """
         self.assertThat(
-            message_name(colors, no_formatting, None),
+            message_name(colors, no_formatting, None, options=Options()),
             ExactlyEquals(u'<unnamed>'))
         message = WrittenMessage.from_dict({u'timestamp': 0})
         self.assertThat(
-            message_name(colors, no_formatting, message),
+            message_name(colors, no_formatting, message, options=Options()),
             ExactlyEquals(u'<unnamed>'))
 
 
@@ -233,7 +235,7 @@ class FormatNodeTests(TestCase):
         if format_value is None:
             def format_value(value, field_name=None):
                 return value
-        return format_node(format_value, colors, node)
+        return format_node(format_value, colors, Options(), node)
 
     def test_task(self):
         """
