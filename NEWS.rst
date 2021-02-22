@@ -4,6 +4,15 @@ eliot-tree changelog
 
 .. towncrier release notes start
 
+Eliottree 21.0.0 (2021-02-22)
+=============================
+
+Bugfixes
+--------
+
+- - Eliot-tree crashes with Unicode encoding errors on non-UTF8 terminals even when specifying `--ascii`. (#95)
+
+
 Eliottree 19.0.1 (2020-01-15)
 =============================
 
