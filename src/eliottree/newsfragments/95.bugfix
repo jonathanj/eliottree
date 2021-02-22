@@ -1,0 +1,1 @@
+- Eliot-tree crashes with Unicode encoding errors on non-UTF8 terminals even when specifying `--ascii`.
