@@ -14,9 +14,6 @@ from eliottree._util import eliot_ns, format_namespace, is_namespace
 from eliottree._theme import get_theme
 
 
-RIGHT_DOUBLE_ARROW = u'\N{RIGHTWARDS DOUBLE ARROW}'
-HOURGLASS = u'\N{WHITE HOURGLASS}'
-
 DEFAULT_IGNORED_KEYS = set([
     u'action_status', u'action_type', u'task_level', u'task_uuid',
     u'message_type'])
@@ -51,7 +48,7 @@ def _default_value_formatter(
             format.anything(encoding)))
 
 
-def message_name(theme, format_value, message, end_message=None):
+def message_name(theme, format_value, message, end_message=None, options=None):
     """
     Derive the name for a message.
 
@@ -71,7 +68,7 @@ def message_name(theme, format_value, message, end_message=None):
             if end_message:
                 duration_seconds = end_message.timestamp - message.timestamp
                 duration = u' {} {}'.format(
-                    HOURGLASS,
+                    options.HOURGLASS,
                     theme.duration(
                         format_value(
                             duration_seconds,
@@ -87,7 +84,7 @@ def message_name(theme, format_value, message, end_message=None):
             return u'{}{} {} {} {}{}'.format(
                 theme.parent(action_type),
                 theme.task_level(message.task_level.to_string()),
-                RIGHT_DOUBLE_ARROW,
+                options.ARROW,
                 status_color(message.contents.action_status),
                 timestamp,
                 duration)
@@ -101,7 +98,7 @@ def message_name(theme, format_value, message, end_message=None):
     return u'<unnamed>'
 
 
-def format_node(format_value, theme, node):
+def format_node(format_value, theme, options, node):
     """
     Format a node for display purposes.
 
@@ -120,12 +117,14 @@ def format_node(format_value, theme, node):
             theme,
             format_value,
             node.start_message,
-            node.end_message)
+            node.end_message,
+            options)
     elif isinstance(node, WrittenMessage):
         return message_name(
             theme,
             format_value,
-            node)
+            node,
+            options=options)
     elif isinstance(node, tuple):
         key, value = node
         if isinstance(value, (dict, list)):
@@ -245,6 +244,20 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
     :param bool ascii: Render the tree as plain ASCII instead of Unicode?
     :param Theme theme: Theme to use for rendering.
     """
+    def make_options():
+        if ascii:
+            _options = ASCII_OPTIONS
+        else:
+            _options = Options()
+        if colorize_tree:
+            return ColorizedOptions(
+                failed_color=theme.tree_failed,
+                depth_colors=[theme.tree_color0, theme.tree_color1, theme.tree_color2],
+                options=_options)
+        return _options
+
+    options = make_options()
+
     if ignored_fields is None:
         ignored_fields = DEFAULT_IGNORED_KEYS
     if colorize is not None:
@@ -267,25 +280,13 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
         caught_exceptions,
         u'<value formatting exception>')
     _format_node = track_exceptions(
-        partial(format_node, _format_value, theme),
+        partial(format_node, _format_value, theme, options),
         caught_exceptions,
         u'<node formatting exception>')
     _get_children = partial(get_children, ignored_fields)
 
-    def make_options():
-        if ascii:
-            options = ASCII_OPTIONS
-        else:
-            options = Options()
-        if colorize_tree:
-            return ColorizedOptions(
-                failed_color=theme.tree_failed,
-                depth_colors=[theme.tree_color0, theme.tree_color1, theme.tree_color2],
-                options=options)
-        return options
-
     for task in tasks:
-        write(format_tree(task, _format_node, _get_children, make_options()))
+        write(format_tree(task, _format_node, _get_children, options))
         write(u'\n')
 
     if write_err and caught_exceptions:

@@ -20,18 +20,26 @@
 import itertools
 
 
+RIGHT_DOUBLE_ARROW = u'\N{RIGHTWARDS DOUBLE ARROW}'
+HOURGLASS = u'\N{WHITE HOURGLASS}'
+
+
 class Options(object):
     def __init__(self,
                  FORK=u'\u251c',
                  LAST=u'\u2514',
                  VERTICAL=u'\u2502',
                  HORIZONTAL=u'\u2500',
-                 NEWLINE=u'\u23ce'):
+                 NEWLINE=u'\u23ce',
+                 ARROW=RIGHT_DOUBLE_ARROW,
+                 HOURGLASS=HOURGLASS):
         self.FORK = FORK
         self.LAST = LAST
         self.VERTICAL = VERTICAL
         self.HORIZONTAL = HORIZONTAL
         self.NEWLINE = NEWLINE
+        self.ARROW = ARROW
+        self.HOURGLASS = HOURGLASS
 
     def color(self, node, depth):
         return lambda text, *a, **kw: text
@@ -51,7 +59,9 @@ ASCII_OPTIONS = Options(FORK=u'|',
                         LAST=u'+',
                         VERTICAL=u'|',
                         HORIZONTAL=u'-',
-                        NEWLINE=u'\n')
+                        NEWLINE=u'\n',
+                        ARROW=u'=>',
+                        HOURGLASS='|Y|')
 
 
 def _format_newlines(prefix, formatted_node, options):
