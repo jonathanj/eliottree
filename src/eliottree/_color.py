@@ -1,6 +1,9 @@
 import colored as _colored
 
 
+# Disable `colored` TTY awareness, since we handle this ourselves.
+_colored.set_tty_aware(awareness=False)
+
 attr_codes = {
     'bold': 1,
     'dim': 2,
