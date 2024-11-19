@@ -4,6 +4,15 @@ eliot-tree changelog
 
 .. towncrier release notes start
 
+Eliottree 24.0.0 (2024-11-19)
+=============================
+
+Bugfixes
+--------
+
+- `--color=always` does not always output color (#106)
+
+
 Eliottree 21.0.0 (2021-02-22)
 =============================
 
