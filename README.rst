@@ -148,15 +148,15 @@ See the `JMESPath specification`_ for more information.
 Programmatic usage
 ------------------
 
+For now, just an example in non-streaming mode.
+
 .. code-block:: python
 
-   import json, sys
-   from eliottree import tasks_from_iterable, render_tasks
-   # Or `codecs.getwriter('utf-8')(sys.stdout).write` on Python 2.
-   render_tasks(sys.stdout.write, tasks, colorize=True)
+   import sys
+   from eliottree._cli import parse_messages, render_tasks
+    _, tasks = parse_messages([open('/path/to/your/log', 'r')])
+    render_tasks(sys.stdout.write, tasks)
 
-See :code:`help(render_tasks)` and :code:`help(tasks_from_iterable)` from a
-Python REPL for more information.
 
 Configuration
 -------------
