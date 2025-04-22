@@ -23,6 +23,7 @@ def _default_value_formatter(
         human_readable,
         field_limit,
         utc_timestamps=True,
+        include_microsecond=False,
         encoding='utf-8',
 ):
     """
@@ -32,7 +33,7 @@ def _default_value_formatter(
     if human_readable:
         fields = {
             eliot_ns(u'timestamp'): format.timestamp(
-                include_microsecond=False,
+                include_microsecond=include_microsecond,
                 utc_timestamps=utc_timestamps),
             eliot_ns(u'duration'): format.duration(),
         }
@@ -217,8 +218,8 @@ class ColorizedOptions(object):
 def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
                  human_readable=False, colorize=None, write_err=None,
                  format_node=format_node, format_value=None,
-                 utc_timestamps=True, colorize_tree=False, ascii=False,
-                 theme=None):
+                 utc_timestamps=True, include_microsecond=False,
+                 colorize_tree=False, ascii=False, theme=None):
     """
     Render Eliot tasks as an ASCII tree.
 
@@ -240,6 +241,7 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
     :type format_value: Callable[[Any], `text_type`]
     :param format_value: Callable to format a value.
     :param bool utc_timestamps: Format timestamps as UTC?
+    :param bool inclue_microsecond: Include microsecond in formatted timestamps?
     :param int colorize_tree: Colorizing the tree output?
     :param bool ascii: Render the tree as plain ASCII instead of Unicode?
     :param Theme theme: Theme to use for rendering.
@@ -274,7 +276,8 @@ def render_tasks(write, tasks, field_limit=0, ignored_fields=None,
         format_value = _default_value_formatter(
             human_readable=human_readable,
             field_limit=field_limit,
-            utc_timestamps=utc_timestamps)
+            utc_timestamps=utc_timestamps,
+            include_microsecond=include_microsecond)
     _format_value = track_exceptions(
         format_value,
         caught_exceptions,
