@@ -90,7 +90,7 @@ def setup_platform(colorize):
 
 
 def display_tasks(tasks, color, colorize_tree, ascii, theme_name, ignored_fields,
-                  field_limit, human_readable, utc_timestamps, include_microsecond,
+                  field_limit, human_readable, utc_timestamps, include_microseconds,
                   theme_overrides):
     """
     Render Eliot tasks, apply any command-line-specified behaviour and render
@@ -124,7 +124,7 @@ def display_tasks(tasks, color, colorize_tree, ascii, theme_name, ignored_fields
         colorize_tree=colorize and colorize_tree,
         ascii=ascii,
         utc_timestamps=utc_timestamps,
-        include_microsecond=include_microsecond,
+        include_microseconds=include_microseconds,
         theme=theme)
 
 
@@ -232,9 +232,9 @@ def main():
                         action='store_false',
                         dest='utc_timestamps',
                         help='''Convert timestamps to the local timezone.''')
-    parser.add_argument('--include-microsecond',
+    parser.add_argument('--include-microseconds',
                         action='store_true',
-                        dest='include_microsecond',
+                        dest='include_microseconds',
                         help='''Include microseconds in human readable timestamps.''')
     parser.add_argument('--color',
                         default='auto',
@@ -321,7 +321,7 @@ def main():
             field_limit=args.field_limit,
             human_readable=args.human_readable,
             utc_timestamps=args.utc_timestamps,
-            include_microsecond=args.include_microsecond,
+            include_microseconds=args.include_microseconds,
             theme_overrides=config.get('theme_overrides'))
     except JSONParseError as e:
         stderr.write(u'JSON parse error, file {}, line {}:\n{}\n\n'.format(

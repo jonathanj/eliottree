@@ -9,12 +9,19 @@ from subprocess import PIPE, CalledProcessError, Popen
 from unittest import TestCase
 
 from eliottree._compat import dump_json_bytes
-from eliottree.test.tasks import message_task, missing_uuid_task
+from eliottree.test.tasks import message_task, message_task_with_microseconds, missing_uuid_task
 
 
 rendered_message_task = (
     u'cdeb220d-7605-4d5f-8341-1a170222e308\n'
     u'\u2514\u2500\u2500 twisted:log/1 2015-03-03 04:25:00Z\n'
+    u'    \u251c\u2500\u2500 error: False\n'
+    u'    \u2514\u2500\u2500 message: Main loop terminated.\n\n'
+).replace('\n', os.linesep).encode('utf-8')
+
+rendered_message_task_with_microseconds = (
+    u'cdeb220d-7605-4d5f-8341-1a170222e308\n'
+    u'\u2514\u2500\u2500 twisted:log/1 2015-03-03 04:25:00.123000Z\n'
     u'    \u251c\u2500\u2500 error: False\n'
     u'    \u2514\u2500\u2500 message: Main loop terminated.\n\n'
 ).replace('\n', os.linesep).encode('utf-8')
@@ -103,6 +110,17 @@ class EndToEndTests(TestCase):
             f.flush()
             self.assertEqual(check_output(["eliot-tree", f.name]),
                              rendered_message_task)
+
+    def test_file_microseconds(self):
+        """
+        ``eliot-tree`` can read and render JSON messages from a file on the
+        command line and render microseconds.
+        """
+        with NamedTemporaryFile() as f:
+            f.write(dump_json_bytes(message_task_with_microseconds))
+            f.flush()
+            self.assertEqual(check_output(["eliot-tree", "--include-microseconds", f.name]),
+                             rendered_message_task_with_microseconds)
 
     def test_json_parse_error(self):
         """

@@ -98,13 +98,33 @@ class DefaultValueFormatterTests(TestCase):
         format_value = _default_value_formatter(
             human_readable=True, field_limit=0, utc_timestamps=False)
         # datetime(2015, 6, 6, 22, 57, 12)
-        now = 1433631432 + time.timezone
+        now = 1433631432
         self.assertThat(
             format_value(now, eliot_ns(u'timestamp')),
-            ExactlyEquals(u'2015-06-06 22:57:12'))
+            ExactlyEquals(u'2015-06-06 15:57:12'))
         self.assertThat(
             format_value(str(now), eliot_ns(u'timestamp')),
-            ExactlyEquals(u'2015-06-06 22:57:12'))
+            ExactlyEquals(u'2015-06-06 15:57:12'))
+
+    def test_timestamp_microseconds(self):
+        """
+        Format Eliot ``timestamp`` fields as human-readable local time if the
+        feature was requested.
+        """
+        format_value = _default_value_formatter(
+            human_readable=True,
+            field_limit=0,
+            utc_timestamps=False,
+            include_microseconds=True,
+        )
+        # datetime.datetime(2015, 6, 6, 15, 57, 12, 123000)
+        now = 1433631432.123
+        self.assertThat(
+            format_value(now, eliot_ns(u'timestamp')),
+            ExactlyEquals(u'2015-06-06 15:57:12.123000'))
+        self.assertThat(
+            format_value(str(now), eliot_ns(u'timestamp')),
+            ExactlyEquals(u'2015-06-06 15:57:12.123000'))
 
     def test_not_eliot_timestamp_field(self):
         """

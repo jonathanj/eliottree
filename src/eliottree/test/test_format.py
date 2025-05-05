@@ -106,7 +106,9 @@ class TimestampTests(TestCase):
         """
         timestamp = 1433631432.0
         utc = format.timestamp(utc_timestamps=True)(timestamp)
-        local = format.timestamp(utc_timestamps=False)(timestamp + time.timezone)
+        # Some timezone offset.
+        fixed_timezone_offset = 3600 * 7 
+        local = format.timestamp(utc_timestamps=False)(timestamp + fixed_timezone_offset)
         # Strip the "Z" off the end.
         self.assertThat(utc[:-1], ExactlyEquals(local))
 
