@@ -13,6 +13,14 @@ message_task = {
     u"message_type": u"twisted:log",
     u"task_level": [1]}
 
+message_task_with_microseconds = {
+    u"task_uuid": u"cdeb220d-7605-4d5f-8341-1a170222e308",
+    u"error": False,
+    u"timestamp": 1425356700.123,
+    u"message": u"Main loop terminated.",
+    u"message_type": u"twisted:log",
+    u"task_level": [1]}
+
 action_task = {
     u"timestamp": 1425356800,
     u"action_status": u"started",

@@ -52,6 +52,6 @@ setup(
         'win-unicode-console>=0.5;platform_system=="Windows"',
     ],
     extras_require={
-        'test': ['testtools>=1.8.0'],
+        'test': ['testtools>=1.8.0', 'mock>=5.2.0'],
     },
 )

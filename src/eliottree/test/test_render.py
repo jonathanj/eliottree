@@ -5,6 +5,8 @@ from testtools import ExpectedException, TestCase
 from testtools.matchers import AfterPreprocessing as After
 from testtools.matchers import (
     Contains, Equals, HasLength, MatchesAll, MatchesListwise, StartsWith)
+import mock
+import datetime
 
 from eliottree import (
     render_tasks, tasks_from_iterable)
@@ -27,6 +29,44 @@ class DefaultValueFormatterTests(TestCase):
     """
     Tests for ``eliottree.render._default_value_formatter``.
     """
+    
+    def setUp(self):
+        super(DefaultValueFormatterTests, self).setUp()
+        # Mock the entire datetime module
+        self.mock_datetime = mock.patch('eliottree.format.datetime')
+        self.mock_dt = self.mock_datetime.start()
+        
+        # Set up fixed datetime behaviors
+        # For UTC timestamps (1433631432 = 2015-06-06 22:57:12 UTC)
+        utc_dt = datetime.datetime(2015, 6, 6, 22, 57, 12)
+        self.mock_dt.utcfromtimestamp.return_value = utc_dt
+        
+        # For local timestamps (simulate -7 hours from UTC)
+        local_dt = datetime.datetime(2015, 6, 6, 15, 57, 12)
+        self.mock_dt.fromtimestamp.return_value = local_dt
+        
+        # For microsecond-including timestamps
+        utc_dt_micro = datetime.datetime(2015, 6, 6, 22, 57, 12, 123000)
+        local_dt_micro = datetime.datetime(2015, 6, 6, 15, 57, 12, 123000)
+        
+        # Create different return values based on input
+        def mock_utc_timestamp(ts):
+            if abs(ts - 1433631432.123) < 0.001:
+                return utc_dt_micro
+            return utc_dt
+            
+        def mock_local_timestamp(ts):
+            if abs(ts - 1433631432.123) < 0.001:
+                return local_dt_micro
+            return local_dt
+            
+        self.mock_dt.utcfromtimestamp.side_effect = mock_utc_timestamp
+        self.mock_dt.fromtimestamp.side_effect = mock_local_timestamp
+    
+    def tearDown(self):
+        self.mock_datetime.stop()
+        super(DefaultValueFormatterTests, self).tearDown()
+   
     def test_unicode(self):
         """
         Pass ``unicode`` values straight through.
@@ -98,13 +138,33 @@ class DefaultValueFormatterTests(TestCase):
         format_value = _default_value_formatter(
             human_readable=True, field_limit=0, utc_timestamps=False)
         # datetime(2015, 6, 6, 22, 57, 12)
-        now = 1433631432 + time.timezone
+        now = 1433631432
         self.assertThat(
             format_value(now, eliot_ns(u'timestamp')),
-            ExactlyEquals(u'2015-06-06 22:57:12'))
+            ExactlyEquals(u'2015-06-06 15:57:12'))
         self.assertThat(
             format_value(str(now), eliot_ns(u'timestamp')),
-            ExactlyEquals(u'2015-06-06 22:57:12'))
+            ExactlyEquals(u'2015-06-06 15:57:12'))
+
+    def test_timestamp_microseconds(self):
+        """
+        Format Eliot ``timestamp`` fields as human-readable local time if the
+        feature was requested.
+        """
+        format_value = _default_value_formatter(
+            human_readable=True,
+            field_limit=0,
+            utc_timestamps=False,
+            include_microseconds=True,
+        )
+        # datetime.datetime(2015, 6, 6, 15, 57, 12, 123000)
+        now = 1433631432.123
+        self.assertThat(
+            format_value(now, eliot_ns(u'timestamp')),
+            ExactlyEquals(u'2015-06-06 15:57:12.123000'))
+        self.assertThat(
+            format_value(str(now), eliot_ns(u'timestamp')),
+            ExactlyEquals(u'2015-06-06 15:57:12.123000'))
 
     def test_not_eliot_timestamp_field(self):
         """

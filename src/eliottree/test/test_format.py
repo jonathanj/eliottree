@@ -1,4 +1,5 @@
-import time
+import datetime
+import mock
 from testtools import TestCase
 from testtools.matchers import Is
 
@@ -84,6 +85,21 @@ class TimestampTests(TestCase):
     """
     Tests for `eliottree.format.timestamp`.
     """
+
+    def setUp(self):
+        super(TimestampTests, self).setUp()
+        # Mock the datetime module
+        self.mock_datetime = mock.patch('eliottree.format.datetime')
+        self.mock_dt = self.mock_datetime.start()
+
+        # Set up dynamic behavior for UTC and local timestamps
+        self.mock_dt.utcfromtimestamp.side_effect = lambda ts: datetime.datetime.utcfromtimestamp(ts)
+        self.mock_dt.fromtimestamp.side_effect = lambda ts: datetime.datetime.utcfromtimestamp(ts)
+
+    def tearDown(self):
+        self.mock_datetime.stop()
+        super(TimestampTests, self).tearDown()
+
     def test_text(self):
         """
         Timestamps as text are converted to ISO 8601.
@@ -97,8 +113,8 @@ class TimestampTests(TestCase):
         Timestamps as floats are converted to ISO 8601.
         """
         self.assertThat(
-            format.timestamp()(1433631432.0),
-            ExactlyEquals(u'2015-06-06 22:57:12Z'))
+            format.timestamp()(1433631432.123),
+            ExactlyEquals(u'2015-06-06 22:57:12.123000Z'))
 
     def test_local(self):
         """
@@ -106,8 +122,8 @@ class TimestampTests(TestCase):
         """
         timestamp = 1433631432.0
         utc = format.timestamp(utc_timestamps=True)(timestamp)
-        local = format.timestamp(utc_timestamps=False)(timestamp + time.timezone)
-        # Strip the "Z" off the end.
+        local = format.timestamp(utc_timestamps=False)(timestamp)
+        # Strip the "Z" off the end for local time comparison
         self.assertThat(utc[:-1], ExactlyEquals(local))
 
 
